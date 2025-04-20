@@ -1,0 +1,53 @@
+@page "/courses/{Id}"
+
+<PageTitle>Course Detail</PageTitle>
+
+<MudText Typo="Typo.h4">Course name</MudText>
+
+<Block Title="Materials" IsEmpty="!(Items != null && Items.Any())" EmptyDesc="No materials available">
+    <ActionButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Outlined"
+            Href=@($"/courses/{Id}/upload")>Upload
+            materials</MudButton>
+    </ActionButton>
+
+    <ChildContent>
+        <div class="mud-grid mud-grid-spacing-xs-2">
+            @foreach (var item in Items)
+            {
+                <MudCard Class="p-4 mud-width-full">
+                    <MudCardContent>
+                    </MudCardContent>
+                </MudCard>
+            }
+        </div>
+    </ChildContent>
+</Block>
+
+<Block Title="Test" IsEmpty="!(Items != null && Items.Any())" EmptyDesc="No tests available">
+
+    <ActionButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Outlined"
+            Href=@($"/courses/{Id}/test/create")>Create Test
+        </MudButton>
+    </ActionButton>
+
+    <ChildContent>
+        <div class="mud-grid mud-grid-spacing-xs-2">
+            @foreach (var item in Items)
+            {
+                <MudCard Class="p-4 mud-width-full">
+                    <MudCardContent>
+                    </MudCardContent>
+                </MudCard>
+            }
+        </div>
+    </ChildContent>
+
+</Block>
+
+@code {
+    [Parameter] public string Id { get; set; } = String.Empty;
+
+    public List<Course> Items { get; set; }
+}

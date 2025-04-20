@@ -1,0 +1,78 @@
+@using FluentValidation
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject IAuthService Auth
+
+<MudForm Model="@model" @ref="@form" Validation="@(loginRequestValidator.ValidateValue)" ValidationDelay="0">
+    <MudCardContent>
+
+        <MudTextField @bind-Value="model.Email" For="@(() => model.Email)" Immediate="true" Label="Email" />
+
+        <MudTextField @bind-Value="model.Password" For="@(() => model.Password)" Immediate="true" Label="Password" />
+    </MudCardContent>
+</MudForm>
+
+<MudCardActions>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@(async () => await Submit())">
+        Order</MudButton>
+</MudCardActions>
+
+
+@code {
+    [Inject] ISnackbar Snackbar { get; set; }
+    private string ErrorMessage;
+
+    MudForm form;
+
+    LoginRequestFluentValidator loginRequestValidator = new LoginRequestFluentValidator();
+
+    LoginRequestDTO model = new LoginRequestDTO();
+
+
+    private async Task Submit()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            var success = await Auth.LoginAsync(model);
+
+            if (success)
+            {
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                ErrorMessage = "Invalid login attempt.";
+            }
+        }
+    }
+
+    /// <summary>
+    /// A standard AbstractValidator which contains multiple rules and can be shared with the back end API
+    /// </summary>
+    /// <typeparam name="OrderModel"></typeparam>
+    public class LoginRequestFluentValidator : AbstractValidator<LoginRequestDTO>
+    {
+        public LoginRequestFluentValidator()
+        {
+            RuleFor(x => x.Email)
+            .Cascade(CascadeMode.Stop)
+            .NotEmpty()
+            .EmailAddress();
+
+            RuleFor(x => x.Password)
+            .NotEmpty()
+            .Length(1, 100);
+        }
+        public Func<object, string, Task<IEnumerable<string>>> ValidateValue => async (model, propertyName) =>
+        {
+            var result = await ValidateAsync(ValidationContext<LoginRequestDTO>.CreateWithOptions((LoginRequestDTO)model, x =>
+    x.IncludeProperties(propertyName)));
+            if (result.IsValid)
+                return Array.Empty<string>();
+            return result.Errors.Select(e => e.ErrorMessage);
+        };
+    }
+}

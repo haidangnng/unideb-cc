@@ -1,0 +1,59 @@
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<AuthorizeView>
+    <Authorized>
+        @if (_isReady)
+        {
+            @ChildContent
+        }
+        else
+        {
+            <p>Loading authentication state...</p>
+        }
+    </Authorized>
+    <NotAuthorized>
+        @if (_isReady && !_navigated)
+        {
+            <p>Redirecting to login...</p>
+        }
+        else
+        {
+            <p>Checking login status...</p>
+        }
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+    private bool _isReady = false;
+    private bool _navigated = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var authState = await AuthProvider.GetAuthenticationStateAsync();
+            _isReady = true;
+
+            // If user is NOT authenticated, safely trigger redirect
+            if (authState.User.Identity?.IsAuthenticated != true)
+            {
+                try
+                {
+                    await JSRuntime.InvokeVoidAsync("setTimeout", 0); // Ensure JS is ready
+                    _navigated = true;
+                    Navigation.NavigateTo("/login", forceLoad: true);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[Wrapper] Navigation error: {ex.Message}");
+                }
+            }
+
+            StateHasChanged();
+        }
+    }
+}

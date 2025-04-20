@@ -1,0 +1,36 @@
+﻿@using System.Net.Http
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.JSInterop
+@using QuestionLair.Web
+
+@* Components *@
+@using QuestionLair.Web.Components
+@using QuestionLair.Web.Components.Layout
+@using QuestionLair.Web.Components.Layout.Common
+@using QuestionLair.Web.Components.UI
+@using QuestionLair.Web.Components.UI.Auth
+@using QuestionLair.Web.Components.UI.Common
+
+@* SERVICES *@
+@using QuestionLair.Web.Services
+@using QuestionLair.Web.Services.Auth
+@using QuestionLair.Web.Services.Users
+
+@* INTERFACE *@
+@using QuestionLair.Web.Interfaces
+@using QuestionLair.Web.Interfaces.Auth
+@using QuestionLair.Web.Interfaces.Users
+@using QuestionLair.Web.Interfaces.Courses;
+
+@* SHARED *@
+@using MudBlazor
+@using Shared.DTOs.Auth;
+@using Shared.Models.Courses;
+@using Shared.Models.Users;

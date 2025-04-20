@@ -1,0 +1,94 @@
+@page "/profile"
+
+@using Shared.Models.Users
+
+@inject IUserService UserService
+@inject NavigationManager Navigation
+
+<PageTitle>User Profile</PageTitle>
+
+<MudPaper Class="pa-4" Elevation="4">
+    <MudText Typo="Typo.h5">User Profile</MudText>
+
+
+    @if (user != null)
+    {
+        <MudGrid Class="mt-4">
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.subtitle2">Name</MudText>
+                <MudText Typo="Typo.body1">@user.Name</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.subtitle2">Username</MudText>
+                <MudText Typo="Typo.body1">@user.Username</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.subtitle2">Email</MudText>
+                <MudText Typo="Typo.body1">@user.Email</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.subtitle2">Role</MudText>
+                <MudText Typo="Typo.body1">@user.UserRole</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.subtitle2">Created</MudText>
+                <MudText Typo="Typo.body1">@user.CreatedAt.ToLocalTime():g</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudText Typo="Typo.subtitle2">Updated</MudText>
+                <MudText Typo="Typo.body1">@user.UpdatedAt.ToLocalTime():g</MudText>
+            </MudItem>
+        </MudGrid>
+
+        @if (user.TeacherProfile != null)
+        {
+            <MudDivider Class="my-3" />
+            <MudText Typo="Typo.subtitle1">Teacher Profile</MudText>
+            <!-- Display teacher profile info here -->
+        }
+        else if (user.StudentProfile != null)
+        {
+            <MudDivider Class="my-3" />
+            <MudText Typo="Typo.subtitle1">Student Profile</MudText>
+            <!-- Display student profile info here -->
+        }
+        else if (user.AdminProfile != null)
+        {
+            <MudDivider Class="my-3" />
+            <MudText Typo="Typo.subtitle1">Admin Profile</MudText>
+            <!-- Display admin profile info here -->
+        }
+
+        <MudDivider Class="my-3" />
+    }
+    else if (isLoading)
+    {
+        <MudProgressCircular Indeterminate Color="Color.Primary" />
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Error">Failed to load user profile.</MudAlert>
+    }
+</MudPaper>
+
+@code {
+    private User? user;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            user = await UserService.GetCurrentUserAsync();
+        }
+        catch
+        {
+            user = null;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+}

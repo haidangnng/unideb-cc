@@ -1,0 +1,50 @@
+@page "/courses"
+@layout DashboardLayout
+
+@using Shared.DTOs.Courses
+@inject ICourseClientService CourseService
+@inject ISnackbar Snackbar
+
+<Block Title="Courses" IsEmpty="Items is null || !Items.Any()">
+    <ActionButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Outlined"
+            Href="/courses/create">
+            Create Course
+        </MudButton>
+    </ActionButton>
+
+    <ChildContent>
+        <div class="mud-grid mud-grid-spacing-xs-2">
+            @if (Items != null)
+            {
+                @foreach (var item in Items)
+                {
+                    <MudCard Class="p-4 mud-width-full">
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6">@item.Title</MudText>
+                            <MudText Typo="Typo.caption">ID: @item.Id</MudText>
+                            <MudText Typo="Typo.body2">@item.Description</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                }
+            }
+        </div>
+    </ChildContent>
+</Block>
+
+@code {
+    private List<Course> Items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Items = await CourseService.GetMyCoursesAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load courses: {ex.Message}", Severity.Error);
+            Items = new List<Course>();
+        }
+    }
+}

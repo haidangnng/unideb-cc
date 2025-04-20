@@ -1,0 +1,30 @@
+<div class="pa-2">
+    <div class="w-full d-flex justify-space-between align-center">
+        <MudText Typo="Typo.h5">@Title</MudText>
+        @ActionButton
+    </div>
+
+    <div style="width: 100%; border: 1px solid;" class="my-4" />
+
+    @* @if (Items != null && Items.Any()) *@
+    @if (IsEmpty)
+    {
+        <MudPaper Class="pa-4">
+            <MudStack AlignItems="AlignItems.Center">
+                <MudIcon Size="Size.Large" Icon="@Icons.Material.Filled.ImageNotSupported" Title="Empty" />
+                <MudText Typo="Typo.h5">@EmptyDesc</MudText>
+            </MudStack>
+        </MudPaper>
+    }
+    else
+    {
+        @ChildContent
+    }
+</div>
+@code {
+    [Parameter] public string Title { get; set; } = "Courses";
+    [Parameter] public string EmptyDesc { get; set; } = "No courses available";
+    [Parameter] public bool IsEmpty { get; set; }
+    [Parameter] public RenderFragment? ActionButton { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}
