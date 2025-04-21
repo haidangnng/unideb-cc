@@ -1,60 +1,42 @@
 @inherits LayoutComponentBase
 
-<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
+@inject IAuthService Auth
+@inject NavigationManager Navigation
+
+<MudThemeProvider />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<MudLayout Style="height: 100vh; width: 100vw">
-    <AppBar @bind-IsDarkMode="@_isDarkMode" />
+
+<MudLayout style="height: 100vh; width:100vw">
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+            OnClick="@((e) => DrawerToggle())" />
+        <MudText Typo="Typo.h6" Class="px-4">My Application</MudText>
+        <MudSpacer />
+        <MudIconButton OnClick="Logout" Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" />
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
+        <Menu />
+    </MudDrawer>
+
     @Body
+
 </MudLayout>
 
 @code {
-    public bool _isDarkMode;
-    MudTheme _theme = new MudTheme()
-    {
-        PaletteLight = new PaletteLight()
-        {
-            Primary = "#6B8E23", // Olive Green
-            Secondary = "#A3C293", // Soft Sage
-            Background = "#F5F9F4", // Gentle off-white with greenish undertone
-            Surface = "#FFFFFF",
-            AppbarBackground = "#DDE7DD", // Pale greenish-gray
-            AppbarText = "#3C4F3C",
-            DrawerBackground = "#EBF1E9", // Soft light forest green
-            DrawerText = "#445544",
-            TextPrimary = "#2F3E2F",
-            TextSecondary = "#6E7C6E",
-            ActionDefault = "#A0B89C",
-            ActionDisabled = "#A0B89C80",
-            ActionDisabledBackground = "#E3EDE3",
-            Divider = "#C8D8C8",
-        },
-        PaletteDark = new PaletteDark()
-        {
-            Black = "#0F0F1A", // Very dark purple-blue
-            Background = "#181829",
-            Surface = "#222236",
-            Primary = "#FF6EC7", // Hot Pink
-            Secondary = "#00F0FF", // Neon Cyan
-            AppbarBackground = "#1A1A2E",
-            AppbarText = "#E0E0FF",
-            DrawerBackground = "#202040",
-            DrawerText = "#DDDDFF",
-            TextPrimary = "#FFFFFF",
-            TextSecondary = "#A0A0B2",
-            ActionDefault = "#FF00FF", // Neon Magenta
-            ActionDisabled = "#FF00FF80",
-            ActionDisabledBackground = "#292947",
-            Divider = "#3F3F5B",
-        },
+    bool _drawerOpen = true;
 
-        LayoutProperties = new LayoutProperties()
-        {
-            DrawerWidthLeft = "260px",
-            DrawerWidthRight = "300px",
-            DefaultBorderRadius = "6px"
-        }
-    };
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private async Task Logout()
+    {
+        await Auth.LogoutAsync();
+        Navigation.NavigateTo("/login");
+    }
 }

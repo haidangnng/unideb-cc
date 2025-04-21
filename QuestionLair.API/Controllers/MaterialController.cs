@@ -57,6 +57,7 @@ public class MaterialController(
             {
                 if (file.Length > 0)
                 {
+
                     string filePath = await _s3Service.UploadAsync(file);
 
                     filePaths.Add(filePath);
@@ -74,6 +75,21 @@ public class MaterialController(
             await transaction.RollbackAsync();
 
             return BadRequest(e.Message);
+        }
+    }
+
+    [HttpGet("course/{courseId}")]
+    [Authorize]
+    public async Task<IActionResult> GetMaterialsByCourseId(int courseId)
+    {
+        try
+        {
+            var materials = await _materialService.GetMaterialsByCourseId(courseId);
+            return Ok(materials);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
         }
     }
 }

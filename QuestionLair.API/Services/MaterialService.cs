@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using QuestionLair.API.Data;
 using QuestionLair.API.Interfaces;
 using Shared.Models.Courses;
@@ -32,5 +33,11 @@ public class MaterialService : IMaterialService
         await _context.SaveChangesAsync();
 
         return materials;
+    }
+    public async Task<List<Material>> GetMaterialsByCourseId(int courseId)
+    {
+        return await _context.Materials
+            .Where(m => m.CourseId == courseId)
+            .ToListAsync();
     }
 }

@@ -1,24 +1,30 @@
 @page "/courses/{Id}/upload"
 
 @using FluentValidation
+@using Microsoft.AspNetCore.Components.Forms
+@using QuestionLair.Web.Interfaces.Materials
+@using QuestionLair.Web.Services.Materials
 @inject ISnackbar Snackbar
+@inject IMaterialService MaterialService
+@inject NavigationManager Navigation
 
 <PageTitle>Upload Materials</PageTitle>
+
 <MudStack Style="width: 100%">
     <MudForm Model="@_model"
              @bind-IsValid="_isValid"
              @bind-IsTouched="_isTouched"
-             Validation="@_validationRules.ValidateValue">
+             Validation="@_validationRules.ValidateValue"
+             @ref="_form">
         <MudItem xs="12">
             <MudFileUpload T="IReadOnlyList<IBrowserFile>"
-                           @ref="@_fileUpload"
+                           @ref="_fileUpload"
                            @bind-Files="_model.Files"
                            For="@(() => _model.Files)"
                            AppendMultipleFiles
                            Hidden="@false"
                            InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
                            InputStyle="opacity:0"
-                           ErrorText="@string.Empty"
                            tabindex="-1"
                            @ondrop="@ClearDragClass"
                            @ondragenter="@SetDragClass"
@@ -40,54 +46,43 @@
             </MudFileUpload>
         </MudItem>
 
+        @if (_isUploading)
+        {
+            <MudItem xs="12" class="mt-4">
+                <MudProgressLinear Value="@_uploadProgress" Color="Color.Primary" />
+                <MudText Typo="Typo.caption">@_uploadProgress.ToString("F0")% uploaded</MudText>
+            </MudItem>
+        }
+
         <MudItem>
-            @if (_fileUpload?.ValidationErrors.Any() ?? false)
-            {
-                <MudText Color="Color.Error"
-                         Typo="@Typo.caption">
-                    @_fileUpload?.ValidationErrors[0]
-                </MudText>
-            }
+            <MudButton OnClick="Upload"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Disabled="@(!_isValid || _isUploading)">
+                Upload Files
+            </MudButton>
         </MudItem>
     </MudForm>
 </MudStack>
 
-
 @code {
-    [Parameter] public string Id { get; set; } = String.Empty;
-#nullable enable
+    [Parameter] public string Id { get; set; } = string.Empty;
+
+    private Model _model = new();
+    private ModelFluentValidator _validationRules = new();
+    private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
+    private MudForm _form;
+    private bool _isValid;
+    private bool _isTouched;
+    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+    private string _dragClass = DefaultDragClass;
+    private bool _isUploading = false;
+    private double _uploadProgress = 0;
+
     public class Model
     {
         public IReadOnlyList<IBrowserFile>? Files { get; set; } = new List<IBrowserFile>();
     }
-
-    private Model _model =  new();
-    private ModelFluentValidator _validationRules = new();
-    private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
-    private bool _isValid;
-    private bool _isTouched;
-    private const string FileContent = "this is content";
-    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
-    private string _dragClass = DefaultDragClass;
-
-    private void Upload()
-    {
-        // Upload the files here
-        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
-        Snackbar.Add("TODO: Upload your files!");
-    }
-
-    private void SetDragClass()
-        => _dragClass = $"{DefaultDragClass} mud-border-primary";
-
-    private void ClearDragClass()
-        => _dragClass = DefaultDragClass;
-
-    private Task OpenFilePickerAsync()
-        => _fileUpload?.OpenFilePickerAsync() ?? Task.CompletedTask;
-
-    private Task ClearAsync()
-        => _fileUpload?.ClearAsync() ?? Task.CompletedTask;
 
     public class ModelFluentValidator : AbstractValidator<Model>
     {
@@ -105,4 +100,68 @@
         };
     }
 
-}
+    private void SetDragClass() => _dragClass = $"{DefaultDragClass} mud-border-primary";
+    private void ClearDragClass() => _dragClass = DefaultDragClass;
+
+    private async Task Upload()
+    {
+        await _form.Validate();
+
+        if (!_form.IsValid || string.IsNullOrWhiteSpace(Id))
+        {
+            Snackbar.Add("Invalid form data.", MudBlazor.Severity.Error);
+            return;
+        }
+
+        try
+        {
+            _isUploading = true;
+            _uploadProgress = 0;
+
+            var courseId = int.Parse(Id);
+
+            // manually construct multipart with progress tracking
+            var content = new MultipartFormDataContent();
+            var files = _model.Files!.ToList();
+
+            for (int i = 0; i < files.Count; i++)
+            {
+                var file = files[i];
+                var stream = file.OpenReadStream(maxAllowedSize: 20_000_000); // 20MB max
+                var progressStream = new ProgressStream(stream, (sent) =>
+                {
+                    _uploadProgress = (double)(i + (sent / (double)file.Size)) / files.Count * 100;
+                    InvokeAsync(StateHasChanged);
+                });
+
+                var fileContent = new StreamContent(progressStream);
+                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+                content.Add(fileContent, "Files", file.Name);
+            }
+
+            content.Add(new StringContent(courseId.ToString()), "CourseId");
+
+            var response = await MaterialService.UploadMaterialRawAsync(content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Upload complete!", MudBlazor.Severity.Success);
+                Navigation.NavigateTo($"/course/{Id}");
+            }
+            else
+            {
+                var message = await response.Content.ReadAsStringAsync();
+                Snackbar.Add($"Upload failed: {message}", MudBlazor.Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Upload error: {ex.Message}", MudBlazor.Severity.Error);
+        }
+        finally
+        {
+            _isUploading = false;
+            _uploadProgress = 0;
+        }
+    }
+    }

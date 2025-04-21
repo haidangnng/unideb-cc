@@ -1,10 +1,13 @@
 @page "/courses/{Id}"
 
+@inject IMaterialService MaterialService
+@inject ISnackbar Snackbar
+
 <PageTitle>Course Detail</PageTitle>
 
 <MudText Typo="Typo.h4">Course name</MudText>
 
-<Block Title="Materials" IsEmpty="!(Items != null && Items.Any())" EmptyDesc="No materials available">
+<Block Title="Materials" IsEmpty="!(Materials != null && Materials.Any())" EmptyDesc="No materials available">
     <ActionButton>
         <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Outlined"
             Href=@($"/courses/{Id}/upload")>Upload
@@ -13,7 +16,7 @@
 
     <ChildContent>
         <div class="mud-grid mud-grid-spacing-xs-2">
-            @foreach (var item in Items)
+            @foreach (var item in Materials)
             {
                 <MudCard Class="p-4 mud-width-full">
                     <MudCardContent>
@@ -24,7 +27,7 @@
     </ChildContent>
 </Block>
 
-<Block Title="Test" IsEmpty="!(Items != null && Items.Any())" EmptyDesc="No tests available">
+@* <Block Title="Test" IsEmpty="!(Items != null && Items.Any())" EmptyDesc="No tests available">
 
     <ActionButton>
         <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Outlined"
@@ -44,10 +47,23 @@
         </div>
     </ChildContent>
 
-</Block>
+</Block> *@
 
 @code {
     [Parameter] public string Id { get; set; } = String.Empty;
 
-    public List<Course> Items { get; set; }
+    public List<Material> Materials { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Materials = await MaterialService.GetMaterialsByCourseId(Int32.Parse(Id));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load courses: {ex.Message}", Severity.Error);
+            Materials = new List<Material>();
+        }
+    }
 }

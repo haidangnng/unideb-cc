@@ -41,6 +41,7 @@ public class S3Service
             string fileNameWithoutExt = Path.GetFileNameWithoutExtension(file.FileName).Replace(" ", "_");
             string fileName = $"{fileNameWithoutExt}_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}{fileExt}";
 
+
             var request = new PutObjectRequest()
             {
                 BucketName = _bucketName,
@@ -48,15 +49,21 @@ public class S3Service
                 InputStream = fileStream,
                 ContentType = file.ContentType,
             };
+
+            Console.WriteLine("====== 1 ======");
             await _s3Client.PutObjectAsync(request);
+
+            Console.WriteLine("====== 2 ======");
             var serviceUrl = (_s3Client.Config as AmazonS3Config)?.ServiceURL;
 
+            Console.WriteLine("====== 3 ======");
             if (!string.IsNullOrEmpty(serviceUrl))
             {
                 // MinIO path
                 return $"{serviceUrl.TrimEnd('/')}/{_bucketName}/{fileName}";
             }
 
+            Console.WriteLine("====== 4 ======");
             // AWS S3 path
             return $"https://{_bucketName}.s3.amazonaws.com/{fileName}";
         }
