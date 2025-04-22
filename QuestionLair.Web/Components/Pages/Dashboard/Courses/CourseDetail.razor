@@ -15,15 +15,21 @@
     </ActionButton>
 
     <ChildContent>
-        <div class="mud-grid mud-grid-spacing-xs-2">
+        <MudGrid>
             @foreach (var item in Materials)
             {
-                <MudCard Class="p-4 mud-width-full">
-                    <MudCardContent>
-                    </MudCardContent>
-                </MudCard>
+                <MudItem xs="12" md="6" lg="4">
+                    <MudLink Href="@item.Url" Target="_blank">
+                        <MudCard Class="mud-width-full">
+                            <MudCardContent>
+                                <MudText Typo="Typo.h6">@item.FileName</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudLink>
+                </MudItem>
+
             }
-        </div>
+        </MudGrid>
     </ChildContent>
 </Block>
 

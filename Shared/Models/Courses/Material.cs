@@ -4,6 +4,8 @@ public class Material
     public int Id { get; set; }
     public string Url { get; set; }
 
+    public string FileName { get; set; } = default!; // <== Add this
+
     public int CourseId { get; set; }
     public Course Course { get; set; } = default!;
 

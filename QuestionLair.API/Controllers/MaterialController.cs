@@ -52,19 +52,26 @@ public class MaterialController(
             }
 
             List<string> filePaths = new List<string>();
+            List<string> fileNames = new List<string>();
 
+            Console.WriteLine("==== file length ====", files.Count);
             foreach (var file in files)
             {
                 if (file.Length > 0)
                 {
 
                     string filePath = await _s3Service.UploadAsync(file);
+                    Console.WriteLine($"in loop {filePath}");
 
                     filePaths.Add(filePath);
+                    fileNames.Add(file.FileName);
                 }
             }
 
-            List<Material> materials = await _materialService.CreateMaterial(courseId, filePaths, GetUserId());
+            Console.WriteLine($"fileNames COunt: {fileNames.Count}");
+            Console.WriteLine($"filePaths Count: {filePaths.Count}");
+
+            List<Material> materials = await _materialService.CreateMaterial(courseId, filePaths, fileNames, GetUserId());
 
             await transaction.CommitAsync();
 

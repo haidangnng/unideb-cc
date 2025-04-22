@@ -14,23 +14,24 @@
     </ActionButton>
 
     <ChildContent>
-        <div class="mud-grid mud-grid-spacing-xs-2">
+        <MudGrid Spacing="6">
             @if (Items != null)
             {
                 @foreach (var item in Items)
                 {
-                    <MudLink Href="@($"/courses/{item.Id}")">
-                        <MudCard Class="p-4 mud-width-full">
-                            <MudCardContent>
-                                <MudText Typo="Typo.h6">@item.Title</MudText>
-                                <MudText Typo="Typo.caption">ID: @item.Id</MudText>
-                                <MudText Typo="Typo.body2">@item.Description</MudText>
-                            </MudCardContent>
-                        </MudCard>
-                    </MudLink>
+                    <MudItem xs="12" md="6" lg="4">
+                        <MudLink Href="@($"/courses/{item.Id}")">
+                            <MudCard Class="mud-width-full">
+                                <MudCardContent>
+                                    <MudText Typo="Typo.h6">@item.Title</MudText>
+                                    <MudText Typo="Typo.body2">@item.Description</MudText>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudLink>
+                    </MudItem>
                 }
             }
-        </div>
+        </MudGrid>
     </ChildContent>
 </Block>
 

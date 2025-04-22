@@ -13,16 +13,17 @@ public class MaterialService : IMaterialService
         _context = context;
     }
 
-    public async Task<List<Material>> CreateMaterial(int courseId, List<string> filePaths, int teacherUserId)
+    public async Task<List<Material>> CreateMaterial(int courseId, List<string> filePaths, List<string> fileNames, int teacherUserId)
     {
         var materials = new List<Material>();
 
-        foreach (var filePath in filePaths)
+        for (int i = 0; i < filePaths.Count; i++)
         {
             var material = new Material
             {
                 CourseId = courseId,
-                Url = filePath,
+                Url = filePaths[i],
+                FileName = fileNames[i],
                 UploadedBy = teacherUserId,
             };
 
