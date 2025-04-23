@@ -16,8 +16,11 @@ using Shared.Models.Courses;
 public class MaterialController(
   AppDbContext context,
   IMaterialService materialService,
-  S3Service s3Service) : ControllerBase
+  S3Service s3Service,
+  LLMService llmService) : ControllerBase
 {
+    private readonly LLMService _llmService = llmService;
+
     private readonly AppDbContext _context = context;
     private readonly IMaterialService _materialService = materialService;
     private readonly S3Service _s3Service = s3Service;
@@ -42,7 +45,8 @@ public class MaterialController(
                 return BadRequest("File is required.");
 
             // Validate file types
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".xlsx", ".xls", ".doc", ".docx", ".pdf", ".ppt", ".pptx" };
+            // var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".xlsx", ".xls", ".doc", ".docx", ".pdf", ".ppt", ".pptx" };
+            var allowedExtensions = new[] { ".pdf" };
             var invalidFiles = files.Where(f => !allowedExtensions.Contains(Path.GetExtension(f.FileName).ToLowerInvariant())).ToList();
 
             if (invalidFiles.Any())
@@ -72,6 +76,20 @@ public class MaterialController(
             Console.WriteLine($"filePaths Count: {filePaths.Count}");
 
             List<Material> materials = await _materialService.CreateMaterial(courseId, filePaths, fileNames, GetUserId());
+
+            List<FileMetadataDto> llmMaterials = new List<FileMetadataDto>(); ;
+            foreach (var material in materials)
+            {
+
+                var metadata = new FileMetadataDto
+                {
+                    url = material.Url,
+                    id = material.Id
+                };
+                llmMaterials.Add(metadata);
+            }
+
+            _ = _llmService.CreateLLMFile(llmMaterials);
 
             await transaction.CommitAsync();
 

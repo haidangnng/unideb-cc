@@ -81,6 +81,7 @@ builder.Services.AddHttpClient("ApiClient", client =>
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
 builder.Services.AddScoped<S3Service>();
+builder.Services.AddScoped<LLMService>();
 
 var app = builder.Build();
 
