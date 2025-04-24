@@ -1,0 +1,34 @@
+@page "/courses/{Id}/test/create"
+
+@inject IMaterialService MaterialService
+@inject ISnackbar Snackbar
+
+<PageTitle>Create Test</PageTitle>
+
+<MudText Typo="Typo.h4">Create Test</MudText>
+
+<CreateTestForm Materials="@Materials" />
+
+
+@code {
+    [Parameter] public string Id { get; set; } = String.Empty;
+    public List<Material> Materials { get; set; }
+
+    private async Task GetMaterials()
+    {
+        try
+        {
+            Materials = await MaterialService.GetMaterialsByCourseId(Int32.Parse(Id));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load courses: {ex.Message}", Severity.Error);
+            Materials = new List<Material>();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetMaterials();
+    }
+}

@@ -7,60 +7,25 @@
 
 <MudText Typo="Typo.h4">Course name</MudText>
 
-<Block Title="Materials" IsEmpty="!(Materials != null && Materials.Any())" EmptyDesc="No materials available">
-    <ActionButton>
-        <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Outlined"
-            Href=@($"/courses/{Id}/upload")>Upload
-            materials</MudButton>
-    </ActionButton>
-
-    <ChildContent>
-        <MudGrid>
-            @foreach (var item in Materials)
-            {
-                <MudItem xs="12" md="6" lg="4">
-                    <MudLink Href="@item.Url" Target="_blank">
-                        <MudCard Class="mud-width-full">
-                            <MudCardContent>
-                                <MudText Typo="Typo.h6">@item.FileName</MudText>
-                            </MudCardContent>
-                        </MudCard>
-                    </MudLink>
-                </MudItem>
-
-            }
-        </MudGrid>
-    </ChildContent>
-</Block>
-
-@* <Block Title="Test" IsEmpty="!(Items != null && Items.Any())" EmptyDesc="No tests available">
-
-    <ActionButton>
-        <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Outlined"
-            Href=@($"/courses/{Id}/test/create")>Create Test
-        </MudButton>
-    </ActionButton>
-
-    <ChildContent>
-        <div class="mud-grid mud-grid-spacing-xs-2">
-            @foreach (var item in Items)
-            {
-                <MudCard Class="p-4 mud-width-full">
-                    <MudCardContent>
-                    </MudCardContent>
-                </MudCard>
-            }
-        </div>
-    </ChildContent>
-
-</Block> *@
+<MudTabs Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+    <MudTabPanel Text="Materials">
+        <MaterialList Id="@Id" Materials="@Materials" />
+    </MudTabPanel>
+    <MudTabPanel Text="Tests">
+        <TestList Id="@Id" Tests="@Tests" />
+    </MudTabPanel>
+    <MudTabPanel Text="Students">
+        <MudText>Content Three</MudText>
+    </MudTabPanel>
+</MudTabs>
 
 @code {
     [Parameter] public string Id { get; set; } = String.Empty;
 
     public List<Material> Materials { get; set; }
+    public List<Material> Tests { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    private async Task GetMaterials()
     {
         try
         {
@@ -71,5 +36,22 @@
             Snackbar.Add($"Failed to load courses: {ex.Message}", Severity.Error);
             Materials = new List<Material>();
         }
+    }
+    private async Task GetTests()
+    {
+        try
+        {
+            Tests = await MaterialService.GetMaterialsByCourseId(Int32.Parse(Id));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load courses: {ex.Message}", Severity.Error);
+            Tests = new List<Material>();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.WhenAll(GetTests(), GetMaterials());
     }
 }

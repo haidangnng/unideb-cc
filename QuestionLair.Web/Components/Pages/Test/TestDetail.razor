@@ -1,0 +1,8 @@
+@page "/courses/{CourseId}/test/{TestId}"
+
+<PageTitle>Test</PageTitle>
+
+@code {
+    [Parameter] public string CourseId { get; set; } = String.Empty;
+    [Parameter] public string TestId { get; set; } = String.Empty;
+}

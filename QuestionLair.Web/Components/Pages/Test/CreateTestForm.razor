@@ -1,34 +1,21 @@
 @using FluentValidation
 
-@inject HttpClient Http
-@inject NavigationManager Navigation
-@inject IAuthService Auth
-
 <MudForm Model="@model" @ref="@form" Validation="@(loginRequestValidator.ValidateValue)" ValidationDelay="0">
     <MudCardContent>
+        <MudTextField @bind-Value="model.Email" For="@(() => model.Email)" Immediate="true" Label="Title" />
 
-        <MudTextField @bind-Value="model.Email" For="@(() => model.Email)" Immediate="true" Label="Email" />
-
-        <MudTextField @bind-Value="model.Password" For="@(() => model.Password)" Immediate="true" Label="Password" />
     </MudCardContent>
 </MudForm>
 
-<MudCardActions>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@(async () => await Submit())">
-        Login</MudButton>
-</MudCardActions>
-
-
 @code {
-    [Inject] ISnackbar Snackbar { get; set; }
-    private string ErrorMessage;
-
-    MudForm form;
-
+    [Parameter] public List<Material> Materials { get; set; }
+    private string GetMultiSelectionText(List<string> selectedValues)
+    {
+        return $"{selectedValues.Count} feline{(selectedValues.Count > 1 ? "s have" : " has")} been selected";
+    }
     LoginRequestFluentValidator loginRequestValidator = new LoginRequestFluentValidator();
-
     LoginRequestDTO model = new LoginRequestDTO();
-
+    MudForm form;
 
     private async Task Submit()
     {
@@ -36,16 +23,6 @@
 
         if (form.IsValid)
         {
-            var success = await Auth.LoginAsync(model);
-
-            if (success)
-            {
-                Navigation.NavigateTo("/");
-            }
-            else
-            {
-                ErrorMessage = "Invalid login attempt.";
-            }
         }
     }
 

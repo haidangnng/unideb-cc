@@ -1,0 +1,30 @@
+<Block Title="Materials" IsEmpty="!(Materials != null && Materials.Any())" EmptyDesc="No materials available">
+    <ActionButton>
+        <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Outlined"
+            Href=@($"/courses/{Id}/upload")>Upload
+            materials</MudButton>
+    </ActionButton>
+
+    <ChildContent>
+        <MudGrid>
+            @foreach (var item in Materials)
+            {
+                <MudItem xs="12" md="6" lg="4">
+                    <MudLink Href="@item.Url" Target="_blank">
+                        <MudCard Class="mud-width-full">
+                            <MudCardContent>
+                                <MudText Typo="Typo.h6">@item.FileName</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudLink>
+                </MudItem>
+
+            }
+        </MudGrid>
+    </ChildContent>
+</Block>
+
+@code {
+    [Parameter] public string Id { get; set; } = String.Empty;
+    [Parameter] public List<Material> Materials { get; set; }
+}
