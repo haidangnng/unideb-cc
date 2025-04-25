@@ -95,4 +95,53 @@ public class UserController : ControllerBase
 
         return Ok(students);
     }
+
+    [Authorize]
+    [HttpGet("students/by-course/{courseId}")]
+    public async Task<IActionResult> GetStudentByCourseId(int courseId)
+    {
+        var students = await _context.Users
+               .Where(u => u.UserRole == UserRole.Student)
+               .Include(u => u.StudentProfile)
+                   .ThenInclude(sp => sp.Courses)
+               .Where(u => u.StudentProfile.Courses.Any(sc => sc.CourseId == courseId))
+               .Select(u => new
+               {
+                   u.Id,
+                   u.Username,
+                   u.Email,
+                   u.UserRole,
+                   StudentId = u.StudentProfile!.StudentId,
+                   Major = u.StudentProfile.Major
+               })
+               .ToListAsync();
+
+        return Ok(students);
+    }
+
+    [Authorize(Roles = "Teacher,Admin")]
+    [HttpGet("students/not-in-course/{courseId}")]
+    public async Task<IActionResult> GetStudentsNotInCourse(int courseId)
+    {
+        var enrolledStudentIds = await _context.StudentCourses
+            .Where(sc => sc.CourseId == courseId)
+            .Select(sc => sc.StudentProfileId)
+            .ToListAsync();
+
+        var students = await _context.Users
+            .Where(u => u.UserRole == UserRole.Student && !enrolledStudentIds.Contains(u.StudentProfile.Id))
+            .Include(u => u.StudentProfile)
+            .Select(u => new
+            {
+                u.Id,
+                u.Username,
+                u.Email,
+                u.UserRole,
+                StudentId = u.StudentProfile.StudentId,
+                Major = u.StudentProfile.Major
+            })
+            .ToListAsync();
+
+        return Ok(students);
+    }
 }

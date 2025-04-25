@@ -65,6 +65,14 @@ public class CoursesController : ControllerBase
         return Ok(new { message = "Enrolled successfully" });
     }
 
+    [HttpPost("{courseId}/enroll/{studentId}")]
+    [Authorize(Roles = "Teacher")]
+    public async Task<IActionResult> EnrollStudentByTeacher(int courseId, int studentId)
+    {
+        await _courseService.EnrollStudentAsync(courseId, studentId);
+        return Ok(new { message = $"Student {studentId} enrolled successfully" });
+    }
+
 
     // ========================
     // Get Courses
