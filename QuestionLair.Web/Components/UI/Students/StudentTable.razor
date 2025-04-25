@@ -1,0 +1,26 @@
+<MudTable Items="Users">
+    <HeaderContent>
+        <MudTh>Id</MudTh>
+        <MudTh>Username</MudTh>
+        <MudTh>Email</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id">@context.Id</MudTd>
+        <MudTd DataLabel="Username">@context.Username</MudTd>
+        <MudTd DataLabel="Email">@context.Email</MudTd>
+        <MudTd Class="d-flex gap-4">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary">
+                Enroll
+            </MudButton>
+            <MudButton Href=@($"/students/{@context.Id}") Variant="Variant.Text" Color="Color.Secondary"
+                Style="text-transform:none">
+                Profile
+            </MudButton>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    [Parameter] public List<User> Users { get; set; }
+}

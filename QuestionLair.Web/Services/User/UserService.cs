@@ -16,7 +16,20 @@ public class UserService : IUserService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<User>("auth/me");
+            return await _httpClient.GetFromJsonAsync<User>("api/user/me");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[UserService] Failed to fetch user: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async Task<List<User>> GetAllStudents()
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<List<User>>("api/user/students");
         }
         catch (Exception ex)
         {

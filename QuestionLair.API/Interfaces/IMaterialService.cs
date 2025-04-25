@@ -1,4 +1,3 @@
-
 using Shared.Models.Courses;
 
 namespace QuestionLair.API.Interfaces;

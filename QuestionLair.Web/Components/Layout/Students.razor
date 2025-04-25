@@ -1,0 +1,36 @@
+@page "/students"
+
+@inject IUserService UserService
+@inject ISnackbar Snackbar
+
+<PageTitle> Students </PageTitle>
+
+@if (Users == null)
+{
+    <MudProgressCircular Color="Color.Primary" Size="Size.Medium" />
+}
+else if (!Users.Any())
+{
+    <MudText>No students found.</MudText>
+}
+else
+{
+    <StudentTable Users="@Users" />
+}
+
+@code {
+    public List<User> Users { get; private set; }
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Users = await UserService.GetAllStudents();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Failed to load students.", Severity.Error);
+            Console.WriteLine($"[StudentsPage] Error: {ex.Message}");
+            Users = new List<User>();
+        }
+    }
+}

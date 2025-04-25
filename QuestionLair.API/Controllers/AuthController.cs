@@ -254,4 +254,25 @@ public class AuthController : ControllerBase
 
         return Ok(result);
     }
+
+    [Authorize]
+    [HttpGet("students")]
+    public async Task<IActionResult> GetAllStudents()
+    {
+        var students = await _context.Users
+            .Where(u => u.UserRole == UserRole.Student)
+            .Include(u => u.StudentProfile)
+            .Select(u => new
+            {
+                u.Id,
+                u.Username,
+                u.Email,
+                u.UserRole,
+                StudentId = u.StudentProfile!.StudentId,
+                Major = u.StudentProfile.Major
+            })
+            .ToListAsync();
+
+        return Ok(students);
+    }
 }

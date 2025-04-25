@@ -14,6 +14,7 @@ using QuestionLair.Web.Interfaces.Courses;
 using QuestionLair.Web.Services.Courses;
 using QuestionLair.Web.Interfaces.Materials;
 using QuestionLair.Web.Services.Materials;
+using QuestionLair.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMudServices();
@@ -83,6 +84,10 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICourseClientService, CourseClientService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
+
+// CONTEXT
+builder.Services.AddScoped<UserContextService>();
+builder.Services.AddScoped<ThemeContextService>();
 
 var app = builder.Build();
 

@@ -1,23 +1,20 @@
 @inherits LayoutComponentBase
 
-<MudThemeProvider Theme="MyCustomTheme" @bind-IsDarkMode="@_isDarkMode" />
-<MudPopoverProvider />
-<MudDialogProvider />
-<MudSnackbarProvider />
+@inject ThemeContextService ThemeContext
 
+<CascadingValue Value="ThemeContext">
+    <MudThemeProvider Theme="MyCustomTheme" @bind-IsDarkMode="@ThemeContext.IsDarkMode" @ref="@_mudThemeProvider" />
+    <MudPopoverProvider />
+    <MudDialogProvider />
+    <MudSnackbarProvider />
+</CascadingValue>
 
 <MudLayout style="height: 100vh; width:100vw">
     @Body
 </MudLayout>
 
 @code {
-    private bool _isDarkMode = false;
-    bool _drawerOpen = true;
-    void DrawerToggle()
-    {
-        _drawerOpen = !_drawerOpen;
-    }
-
+    private MudThemeProvider _mudThemeProvider;
     MudTheme MyCustomTheme = new MudTheme()
     {
         PaletteLight = new PaletteLight()
@@ -64,4 +61,13 @@
             }
         }
     };
+    protected override void OnInitialized()
+    {
+        ThemeContext.OnThemeChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        ThemeContext.OnThemeChanged -= StateHasChanged;
+    }
 }
