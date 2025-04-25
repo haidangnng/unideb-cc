@@ -1,42 +1,67 @@
 @inherits LayoutComponentBase
 
-@inject IAuthService Auth
-@inject NavigationManager Navigation
-
-<MudThemeProvider />
+<MudThemeProvider Theme="MyCustomTheme" @bind-IsDarkMode="@_isDarkMode" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 
 <MudLayout style="height: 100vh; width:100vw">
-    <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
-            OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h6" Class="px-4">My Application</MudText>
-        <MudSpacer />
-        <MudIconButton OnClick="Logout" Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" />
-    </MudAppBar>
-
-    <MudDrawer @bind-Open="_drawerOpen" Elevation="2">
-        <Menu />
-    </MudDrawer>
-
     @Body
-
 </MudLayout>
 
 @code {
+    private bool _isDarkMode = false;
     bool _drawerOpen = true;
-
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
     }
 
-    private async Task Logout()
+    MudTheme MyCustomTheme = new MudTheme()
     {
-        await Auth.LogoutAsync();
-        Navigation.NavigateTo("/login");
-    }
+        PaletteLight = new PaletteLight()
+        {
+            Background = "#F2F3F5",
+            Surface = "#FFFFFF",
+            Primary = "#00AEEF",
+            PrimaryContrastText = "#FFFFFF",
+            Secondary = "#00B79D",
+            SecondaryContrastText = "#FFFFFF",
+            Tertiary = "#FFB85C",
+            TextPrimary = "#1F2937",
+            TextSecondary = "#4B5563",
+            Divider = "#D1D5DB",
+            LinesInputs = "#D1D5DB",
+            DrawerBackground = "#F0F1F3",
+            AppbarBackground = "#F2F3F5",
+            AppbarText = "#00AEEF"
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Background = "#0D0D11",
+            Surface = "#1A1B1F",
+            Primary = "#00CFFF",
+            PrimaryContrastText = "#FFFFFF",
+            Secondary = "#00D4A3",
+            SecondaryContrastText = "#FFFFFF",
+            Tertiary = "#FFD166",
+            TextPrimary = "#E0E0E0",
+            TextSecondary = "#9CA3AF",
+            Divider = "#2A2D36",
+            LinesInputs = "#2A2D36",
+            DrawerBackground = "#1A1B1F",
+            AppbarBackground = "#0D0D11",
+            AppbarText = "#00CFFF"
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography()
+            {
+                FontFamily = new[] { "Iosevka" },
+                FontSize = "1rem",
+                LetterSpacing = ".0075em"
+            }
+        }
+    };
 }

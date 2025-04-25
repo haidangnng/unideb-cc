@@ -1,6 +1,21 @@
 ﻿@inherits LayoutComponentBase
 @layout ThemeLayout
 
+@inject IAuthService Auth
+@inject NavigationManager Navigation
+
+<MudAppBar Elevation="1">
+    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+        OnClick="@((e) => DrawerToggle())" />
+    <MudText Typo="Typo.h6" Class="px-4">Aelora</MudText>
+    <MudSpacer />
+    <MudIconButton OnClick="Logout" Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" />
+</MudAppBar>
+
+<MudDrawer @bind-Open="_drawerOpen" Elevation="2">
+    <Menu />
+</MudDrawer>
+
 <MudMainContent>
     <div class="pa-4">
         @Body
@@ -12,3 +27,18 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    private bool _isDarkMode = false;
+    bool _drawerOpen = true;
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private async Task Logout()
+    {
+        await Auth.LogoutAsync();
+        Navigation.NavigateTo("/login");
+    }
+}

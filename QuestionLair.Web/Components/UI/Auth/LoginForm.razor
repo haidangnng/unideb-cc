@@ -5,16 +5,21 @@
 @inject IAuthService Auth
 
 <MudForm Model="@model" @ref="@form" Validation="@(loginRequestValidator.ValidateValue)" ValidationDelay="0">
-    <MudCardContent>
+    <MudTextField @bind-Value="model.Email" For="@(() => model.Email)" Label="Email" Immediate="true"
+        Variant="Variant.Filled" Margin="Margin.Normal" />
 
-        <MudTextField @bind-Value="model.Email" For="@(() => model.Email)" Immediate="true" Label="Email" />
+    <MudTextField @bind-Value="model.Password" For="@(() => model.Password)" Label="Password" Immediate="true"
+        Variant="Variant.Filled" InputType="InputType.Password" Margin="Margin.Normal" />
 
-        <MudTextField @bind-Value="model.Password" For="@(() => model.Password)" Immediate="true" Label="Password" />
-    </MudCardContent>
+    <MudText Align="Align.End" Class="mt-2">
+        <MudLink Href="/forgot-password">Forgot password?</MudLink>
+    </MudText>
 </MudForm>
 
+
 <MudCardActions>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto" OnClick="@(async () => await Submit())">
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-4" FullWidth
+        OnClick="@(async () => await Submit())">
         Login</MudButton>
 </MudCardActions>
 

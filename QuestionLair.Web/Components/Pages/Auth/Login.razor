@@ -1,14 +1,64 @@
 @page "/login"
 @layout AuthLayout
 
-<div class="d-flex justify-center align-center" style="width: 100%; height: 100%">
-    <MudCard>
-        <MudCardHeader>
-            <MudText Typo="Typo.h6" Align="Align.Center">Login</MudText>
-        </MudCardHeader>
+<div class="login-wrapper d-flex align-center justify-center">
+    <div class="login-container">
+        <MudCard Class="login-card" Elevation="3">
+            <MudCardHeader>
+                <MudText Typo="Typo.h5" Align="Align.Center">Welcome back</MudText>
+            </MudCardHeader>
 
-        <MudCardContent>
-            <LoginForm />
-        </MudCardContent>
-    </MudCard>
+            <MudCardContent>
+                <LoginForm />
+            </MudCardContent>
+        </MudCard>
+    </div>
 </div>
+
+<style>
+    .login-wrapper {
+        width: 100vw;
+        height: 100vh;
+        background: #F2F3F5 url('/images/tra.jpg') repeat center center;
+    }
+
+    .login-container {
+        display: flex;
+        flex-direction: row;
+        max-width: 900px;
+        width: 100%;
+        box-shadow: none;
+    }
+
+    .login-brand-panel {
+        flex: 1;
+        background-color: #1A1B1F;
+        color: white;
+        padding: 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        font-family: 'Iosevka', monospace;
+    }
+
+    .brand-logo {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #00AEEF;
+        margin-bottom: 1rem;
+    }
+
+    .brand-tagline {
+        font-size: 1.1rem;
+        color: #E0E0E0;
+    }
+
+    .login-card {
+        flex: 1;
+        border-radius: 12px;
+        margin-left: 2rem;
+        padding: 2rem;
+        background-color: white;
+    }
+</style>
