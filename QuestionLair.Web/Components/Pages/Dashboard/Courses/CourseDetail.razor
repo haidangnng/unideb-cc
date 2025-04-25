@@ -1,6 +1,8 @@
 @page "/courses/{Id}"
 
 @inject IMaterialService MaterialService
+@inject IUserService UserService
+@inject ICourseClientService CourseClientService
 @inject ISnackbar Snackbar
 
 <PageTitle>Course Detail</PageTitle>
@@ -14,16 +16,21 @@
     <MudTabPanel Text="Tests">
         <TestList Id="@Id" Tests="@Tests" />
     </MudTabPanel>
-    <MudTabPanel Text="Students">
-        <MudText>Content Three</MudText>
+    <MudTabPanel Text="Course Students">
+        <StudentTable Users="@CourseStudents" @key="CourseStudents" />
+    </MudTabPanel>
+    <MudTabPanel Text="Enroll Students">
+        <StudentTable Users="@AvailableStudents" OnEnroll="@EnrollStudent" @key="AvailableStudents" />
     </MudTabPanel>
 </MudTabs>
 
 @code {
     [Parameter] public string Id { get; set; } = String.Empty;
 
+    public List<User> AvailableStudents { get; private set; }
     public List<Material> Materials { get; set; }
     public List<Material> Tests { get; set; }
+    public List<User> CourseStudents { get; set; }
 
     private async Task GetMaterials()
     {
@@ -50,8 +57,51 @@
         }
     }
 
+    private async Task GetStudentsByCourseId()
+    {
+        try
+        {
+            CourseStudents = await UserService.GetStudentByCourseId(Int32.Parse(Id));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load courses: {ex.Message}", Severity.Error);
+            CourseStudents = new List<User>();
+        }
+    }
+
+    private async Task GetAllAvailStudents()
+    {
+        try
+        {
+            AvailableStudents = await UserService.GetStudentNotCourseId(Int32.Parse(Id));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Failed to load students.", Severity.Error);
+            Console.WriteLine($"[StudentsPage] Error: {ex.Message}");
+            AvailableStudents = new List<User>();
+        }
+    }
+
+
     protected override async Task OnInitializedAsync()
     {
-        await Task.WhenAll(GetTests(), GetMaterials());
+        await Task.WhenAll(GetTests(), GetMaterials(), GetStudentsByCourseId(), GetAllAvailStudents());
+    }
+    private async Task EnrollStudent(User student)
+    {
+        try
+        {
+            await CourseClientService.EnrollStudentAsync(Int32.Parse(Id), student.Id);
+
+            Snackbar.Add($"{student.Username} enrolled successfully!", Severity.Success);
+            await Task.WhenAll(GetStudentsByCourseId(), GetAllAvailStudents());
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to enroll student: {ex.Message}", Severity.Error);
+        }
     }
 }

@@ -5,14 +5,22 @@
         <MudTh>Email</MudTh>
         <MudTh>Actions</MudTh>
     </HeaderContent>
+
+    <NoRecordsContent>
+        <MudText>Empty</MudText>
+    </NoRecordsContent>
+
     <RowTemplate>
         <MudTd DataLabel="Id">@context.Id</MudTd>
         <MudTd DataLabel="Username">@context.Username</MudTd>
         <MudTd DataLabel="Email">@context.Email</MudTd>
         <MudTd Class="d-flex gap-4">
-            <MudButton Variant="Variant.Outlined" Color="Color.Primary">
-                Enroll
-            </MudButton>
+            @if (OnEnroll != null)
+            {
+                <MudButton Color="Color.Primary" Variant="Variant.Outlined" OnClick="() => OnEnroll.Invoke(context)">
+                    Enroll
+                </MudButton>
+            }
             <MudButton Href=@($"/students/{@context.Id}") Variant="Variant.Text" Color="Color.Secondary"
                 Style="text-transform:none">
                 Profile
@@ -21,6 +29,8 @@
     </RowTemplate>
 </MudTable>
 
+
 @code {
     [Parameter] public List<User> Users { get; set; }
+    [Parameter] public Func<User, Task>? OnEnroll { get; set; }
 }

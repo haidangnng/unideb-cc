@@ -22,9 +22,9 @@ public class CourseClientService : ICourseClientService
         return await response.Content.ReadFromJsonAsync<TeacherCourseDTO>();
     }
 
-    public async Task EnrollStudentAsync(int courseId)
+    public async Task EnrollStudentAsync(int courseId, int studentUserId)
     {
-        var response = await _http.PostAsync($"api/courses/{courseId}/enroll", null);
+        var response = await _http.PostAsync($"api/courses/{courseId}/enroll/{studentUserId}", null);
         response.EnsureSuccessStatusCode();
     }
 
