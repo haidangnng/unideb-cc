@@ -1,16 +1,20 @@
 namespace QuestionLair.Web.Services.Users;
+
+using Microsoft.AspNetCore.Components;
 using QuestionLair.Web.Interfaces.Users;
 using Shared.Models.Users;
 
 public class UserContextService
 {
     private readonly IUserService _userService;
+    private NavigationManager _navigation;
     public User? CurrentUser { get; private set; }
     public bool IsInitialized => CurrentUser != null;
 
-    public UserContextService(IUserService userService)
+    public UserContextService(IUserService userService, NavigationManager navigation)
     {
         _userService = userService;
+        _navigation = navigation;
     }
 
     public async Task InitializeAsync()
@@ -27,6 +31,10 @@ public class UserContextService
                     Email = user.Email,
                     UserRole = user.UserRole,
                 };
+            }
+            else
+            {
+                _navigation.NavigateTo("/login");
             }
         }
     }
