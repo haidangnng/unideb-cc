@@ -7,12 +7,39 @@
 
 <MudText Typo="Typo.h4">Create Test</MudText>
 
-<CreateTestForm Materials="@Materials" />
+<MudPaper Style="margin: auto; height: 100%" Class="my-4">
+    <MudStepper Linear="true" @bind-ActiveStep="_activeStep">
+
+        <MudStep Title="Test Details">
+            @* <TestStepDetails Model="_testModel" OnNext="NextStep" /> *@
+        </MudStep>
+
+        <MudStep Title="Settings">
+            @* <TestStepSettings Model="_testModel" OnNext="NextStep" /> *@
+        </MudStep>
+
+        <MudStep Title="Add Questions">
+            @* <TestStepQuestions Model="_testModel" OnNext="NextStep" /> *@
+        </MudStep>
+
+        <MudStep Title="Review">
+            @* <TestStepReview Model="_testModel" OnPublish="SubmitTest" /> *@
+        </MudStep>
+
+    </MudStepper>
+</MudPaper>
 
 
 @code {
     [Parameter] public string Id { get; set; } = String.Empty;
     public List<Material> Materials { get; set; }
+    private int _activeStep = 0;
+
+    private async Task NextStep()
+    {
+        _activeStep++;
+    }
+
 
     private async Task GetMaterials()
     {
