@@ -163,7 +163,7 @@ public class AuthController : ControllerBase
         var user = await _context.Users
             .Include(u => u.StudentProfile)
             .Include(u => u.TeacherProfile)
-            .Include(u => u.AdminProfile)
+            // .Include(u => u.AdminProfile)
             .FirstOrDefaultAsync(u => u.Id == id);
 
         if (user == null)
@@ -181,9 +181,9 @@ public class AuthController : ControllerBase
                 user.TeacherProfile?.Title,
                 user.TeacherProfile?.Bio,
             },
-            UserRole.Admin => new
-            {
-            },
+            // UserRole.Admin => new
+            // {
+            // },
             _ => null
         };
 
@@ -221,7 +221,7 @@ public class AuthController : ControllerBase
         var user = await _context.Users
             .Include(u => u.StudentProfile)
             .Include(u => u.TeacherProfile)
-            .Include(u => u.AdminProfile)
+            // .Include(u => u.AdminProfile)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user == null)
@@ -239,7 +239,7 @@ public class AuthController : ControllerBase
                 user.TeacherProfile?.Title,
                 user.TeacherProfile?.Bio,
             },
-            UserRole.Admin => new { },
+            // UserRole.Admin => new { },
             _ => null
         };
 

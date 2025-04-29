@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using QuestionLair.API.Data;
@@ -11,9 +12,11 @@ using QuestionLair.API.Data;
 namespace QuestionLair.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250428012120_remove_admin")]
+    partial class remove_admin
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -119,9 +122,6 @@ namespace QuestionLair.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("AllowMultipleAttempts")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("CourseId")
                         .HasColumnType("integer");
 
@@ -134,15 +134,6 @@ namespace QuestionLair.API.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("Duration")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("ShuffleQuestions")
-                        .HasColumnType("boolean");
-
-                    b.Property<int?>("TimeLimitMinutes")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -181,12 +172,15 @@ namespace QuestionLair.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AnswerText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("ChoicesJson")
                         .HasColumnType("text");
 
-                    b.Property<string>("CorrectAnswer")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<bool>("IsMultipleAnswer")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("QuestionText")
                         .IsRequired()

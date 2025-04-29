@@ -41,7 +41,7 @@ public class UserController : ControllerBase
         var user = await _context.Users
             .Include(u => u.StudentProfile)
             .Include(u => u.TeacherProfile)
-            .Include(u => u.AdminProfile)
+            // .Include(u => u.AdminProfile)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user == null)

@@ -11,7 +11,7 @@ public class AppDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<TeacherProfile> TeacherProfiles => Set<TeacherProfile>();
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
-    public DbSet<AdminProfile> AdminProfiles => Set<AdminProfile>();
+    // public DbSet<AdminProfile> AdminProfiles => Set<AdminProfile>();
 
     public DbSet<Course> Courses { get; set; } = default!;
     public DbSet<Material> Materials { get; set; } = default!;
@@ -37,14 +37,14 @@ public class AppDbContext : DbContext
             .WithOne(p => p.User)
             .HasForeignKey<StudentProfile>(p => p.Id);
 
-        modelBuilder.Entity<User>()
-            .HasOne(u => u.AdminProfile)
-            .WithOne(p => p.User)
-            .HasForeignKey<AdminProfile>(p => p.UserId);
+        // modelBuilder.Entity<User>()
+        //     .HasOne(u => u.AdminProfile)
+        //     .WithOne(p => p.User)
+        //     .HasForeignKey<AdminProfile>(p => p.UserId);
 
         modelBuilder.Entity<TeacherProfile>().HasKey(p => p.Id);
         modelBuilder.Entity<StudentProfile>().HasKey(p => p.Id);
-        modelBuilder.Entity<AdminProfile>().HasKey(p => p.UserId);
+        // modelBuilder.Entity<AdminProfile>().HasKey(p => p.UserId);
 
         // StudentCourse relationship
         modelBuilder.Entity<StudentCourse>()

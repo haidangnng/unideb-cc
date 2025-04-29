@@ -16,7 +16,7 @@ public class TestsController : ControllerBase
     }
 
     [HttpPost("generate-ai-test")]
-    public async Task<IActionResult> GenerateAiTest([FromBody] GenerateTestRequestDto dto)
+    public async Task<IActionResult> GenerateAiTest([FromBody] CreateTestDTO dto)
     {
         var httpClient = _httpClientFactory.CreateClient();
 
@@ -28,7 +28,7 @@ public class TestsController : ControllerBase
             return StatusCode((int)response.StatusCode, error);
         }
 
-        var questions = await response.Content.ReadFromJsonAsync<List<GeneratedQuestionDto>>();
+        var questions = await response.Content.ReadFromJsonAsync<List<CreateTestDTO>>();
 
         return Ok(questions);
     }
