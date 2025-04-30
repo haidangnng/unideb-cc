@@ -13,8 +13,10 @@
     <MudText Typo="Typo.h6" Class="px-4">Aelora</MudText>
     <MudSpacer />
     <MudIconButton OnClick="Logout" Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" />
+
     <MudCheckBox @bind-Value="ThemeContext.IsDarkMode" CheckedIcon="@Icons.Material.Filled.DarkMode"
         UncheckedIcon="@Icons.Material.Filled.LightMode" Color="Color.Primary"></MudCheckBox>
+
 </MudAppBar>
 
 <MudDrawer @bind-Open="_drawerOpen" Elevation="2">

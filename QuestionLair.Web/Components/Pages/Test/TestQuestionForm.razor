@@ -1,0 +1,168 @@
+@using Shared.DTOs.Tests
+@inject ISnackbar Snackbar
+@inject HttpClient Http
+
+
+
+<MudText Typo="Typo.h6">Questions</MudText>
+
+@foreach (var question in Model.Questions)
+{
+    <MudCard Class="my-4">
+        <MudCardContent>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.subtitle1">Question @(Model.Questions.IndexOf(question) + 1)</MudText>
+
+                @if (!(_expandedQuestions.ContainsKey(question) && _expandedQuestions[question]) &&
+                            !string.IsNullOrEmpty(question.Question))
+                {
+                    <MudStack class="flex-1" Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexStart">
+                        <MudText Class="flex-1">@question.Question</MudText>
+                    </MudStack>
+                }
+
+                <MudIconButton
+                    Icon="@(!(_expandedQuestions.ContainsKey(question) && _expandedQuestions[question]) ? Icons.Material.Filled.KeyboardArrowDown : Icons.Material.Filled.KeyboardArrowUp)"
+                    OnClick="@(() => ToggleExpand(question))" />
+            </MudStack>
+
+            @if (_expandedQuestions.ContainsKey(question) && _expandedQuestions[question])
+            {
+                <MudTextField T=" string" Label="Question" @bind-Value="question.Question" Variant="Variant.Filled"
+                    Immediate="true" />
+
+                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">Choices</MudText>
+
+                <MudStack>
+                    @foreach (var choiceWithIndex in question.Choices.Select((choice, index) => new
+                    {
+                        Choice = choice,
+                        Index =
+                                index
+                    }))
+                    {
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudTextField T="string" @bind-Value="question.Choices[choiceWithIndex.Index]" Variant="Variant.Filled"
+                                Immediate="true" Class="flex-grow-1" />
+                            <MudButton Variant="Variant.Text" Color="Color.Error"
+                                OnClick="@(() => RemoveChoice(question, choiceWithIndex.Index))">
+                                <MudIcon Icon="@Icons.Material.Filled.Delete" />
+                            </MudButton>
+                        </MudStack>
+                    }
+                </MudStack>
+
+                <MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Center" Class="mt-4">
+                    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.AutoFixHigh"
+                        OnClick="@(async () => await AutoFillQuestion(question))" Color="Color.Secondary">
+                        Auto-Fill Choices
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                        OnClick="@(() => AddChoice(question))">
+                        Add Choice
+                    </MudButton>
+                </MudStack>
+
+                <MudText Typo="Typo.subtitle2" Class="mt-4">Select Correct Answer</MudText>
+
+                <MudSelect T="string" @bind-Value="question.CorrectAnswer" Variant="Variant.Filled" Dense="true">
+                    @foreach (var choice in question.Choices)
+                    {
+                        <MudSelectItem Value="@choice">@choice</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+        </MudCardContent>
+        @if (_expandedQuestions.ContainsKey(question) && _expandedQuestions[question])
+        {
+            <MudCardActions>
+                <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="@(() => RemoveQuestion(question))">
+                    <MudIcon Icon="@Icons.Material.Filled.Delete" /> Remove Question
+                </MudButton>
+            </MudCardActions>
+        }
+    </MudCard>
+    <MudDivider />
+}
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+    OnClick="AddNewQuestion" Class="mt-4">
+    Add New Question
+</MudButton>
+
+
+
+@code {
+    [Parameter] public CreateTestDTO Model { get; set; } = new();
+
+    private Dictionary<CreateTestQuestionDTO, bool> _expandedQuestions = new();
+
+    private void AddNewQuestion()
+    {
+        Model.Questions.Add(new CreateTestQuestionDTO
+        {
+            Question = "",
+            Choices = new List<string> { "", "" },
+            CorrectAnswer = ""
+        });
+    }
+
+    private void AddChoice(CreateTestQuestionDTO question)
+    {
+        question.Choices.Add("");
+    }
+
+    private void RemoveChoice(CreateTestQuestionDTO question, int index)
+    {
+        if (index >= 0 && index < question.Choices.Count)
+            question.Choices.RemoveAt(index);
+    }
+
+    private void RemoveQuestion(CreateTestQuestionDTO question)
+    {
+        Model.Questions.Remove(question);
+    }
+
+    private void ToggleExpand(CreateTestQuestionDTO question)
+    {
+        if (!_expandedQuestions.ContainsKey(question))
+            _expandedQuestions[question] = true;
+        else
+            _expandedQuestions[question] = !_expandedQuestions[question];
+    }
+
+    private async Task AutoFillQuestion(CreateTestQuestionDTO question)
+    {
+        if (string.IsNullOrWhiteSpace(question.Question))
+        {
+            Snackbar.Add("Please enter the question text first.", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("ai/generate-choices", new { question = question.Question });
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<AutoFillResponse>();
+
+            if (result != null)
+            {
+                question.Choices = result.Choices;
+                question.CorrectAnswer = result.CorrectAnswer;
+                Snackbar.Add("Choices filled using AI!", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to auto-fill: {ex.Message}", Severity.Error);
+        }
+    }
+
+    public class AutoFillResponse
+    {
+        public List<string> Choices { get; set; } = new();
+        public string CorrectAnswer { get; set; } = "";
+    }
+}

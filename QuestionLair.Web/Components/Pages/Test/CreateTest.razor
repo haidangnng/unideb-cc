@@ -1,4 +1,5 @@
 @page "/courses/{Id}/test/create"
+@using Shared.DTOs.Tests
 
 @inject IMaterialService MaterialService
 @inject ISnackbar Snackbar
@@ -7,55 +8,48 @@
 
 <MudText Typo="Typo.h4">Create Test</MudText>
 
-<MudPaper Style="margin: auto; height: 100%" Class="my-4">
-    <MudStepper Linear="true" @bind-ActiveStep="_activeStep">
 
-        <MudStep Title="Test Details">
-            @* <TestStepDetails Model="_testModel" OnNext="NextStep" /> *@
-        </MudStep>
+<MudForm Style="width: 100%" Model="@testModel" @ref="form" Validation="@(testRequestValidator.ValidateValue)"
+    ValidationDelay="0">
+    <MudPaper Style="width: 100%; margin: auto; height: 100%" Class="my-4">
+        <MudStepper @bind-ActiveStep="_activeStep" Linear="true" DisableNavigation="true">
+            <MudStep Title="Test Details">
+                <TestDetailForm Model="@testModel" />
+            </MudStep>
 
-        <MudStep Title="Settings">
-            @* <TestStepSettings Model="_testModel" OnNext="NextStep" /> *@
-        </MudStep>
+            <MudStep Title="Settings">
+                <TestSettingForm Model="@testModel" />
+            </MudStep>
 
-        <MudStep Title="Add Questions">
-            @* <TestStepQuestions Model="_testModel" OnNext="NextStep" /> *@
-        </MudStep>
+            <MudStep Title="Add Questions">
+                <TestQuestionForm Model="@testModel" />
+            </MudStep>
 
-        <MudStep Title="Review">
-            @* <TestStepReview Model="_testModel" OnPublish="SubmitTest" /> *@
-        </MudStep>
+            <MudStep Title="Review">
+                @* <TestStepReview Model="testModel" OnPublish="SubmitTest" /> *@
+            </MudStep>
 
-    </MudStepper>
-</MudPaper>
-
+        </MudStepper>
+    </MudPaper>
+</MudForm>
 
 @code {
-    [Parameter] public string Id { get; set; } = String.Empty;
-    public List<Material> Materials { get; set; }
+    [Parameter] public string Id { get; set; }
     private int _activeStep = 0;
+    private MudForm form;
+    private CreateTestDTO testModel = new();
+    private CreateTestFluentValidator testRequestValidator = new();
 
-    private async Task NextStep()
+    private async Task SubmitTest()
     {
-        _activeStep++;
-    }
-
-
-    private async Task GetMaterials()
-    {
-        try
+        await form.Validate();
+        if (!form.IsValid)
         {
-            Materials = await MaterialService.GetMaterialsByCourseId(Int32.Parse(Id));
+            Snackbar.Add("Please fix errors before submitting.", Severity.Error);
+            return;
         }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Failed to load courses: {ex.Message}", Severity.Error);
-            Materials = new List<Material>();
-        }
-    }
 
-    protected override async Task OnInitializedAsync()
-    {
-        await GetMaterials();
+        // Do the submit
+        Snackbar.Add("Test submitted successfully!", Severity.Success);
     }
 }

@@ -1,0 +1,12 @@
+@using Shared.DTOs.Tests;
+
+<MudTextField @bind-Value="model.Title" For="@(() => model.Title)" Label="Title" Immediate="true"
+    Variant="Variant.Filled" Margin="Margin.Normal" />
+
+<MudTextField @bind-Value="model.Description" For="@(() => model.Description)" Label="Description" Immediate="true"
+    Variant="Variant.Filled" Margin="Margin.Normal" AutoGrow Lines="5" />
+
+
+@code {
+    [Parameter] public CreateTestDTO model { get; set; }
+}

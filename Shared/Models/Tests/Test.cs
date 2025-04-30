@@ -6,6 +6,12 @@ public class Test
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public int Duration { get; set; }
+
+    // Test Settings
+    public bool ShuffleQuestions { get; set; } = false;
+    public bool AllowMultipleAttempts { get; set; } = false;
+    public int? TimeLimitMinutes { get; set; }
 
     public int CourseId { get; set; }
     public Course Course { get; set; } = default!;
