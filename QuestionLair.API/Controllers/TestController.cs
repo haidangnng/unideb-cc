@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuestionLair.API.Interfaces;
 using Shared.DTOs.Tests;
 using System.Net.Http.Json;
 
@@ -9,27 +10,34 @@ using System.Net.Http.Json;
 public class TestsController : ControllerBase
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ITestService _testService;
 
-    public TestsController(IHttpClientFactory httpClientFactory)
+    public TestsController(IHttpClientFactory httpClientFactory
+        , ITestService testService)
     {
         _httpClientFactory = httpClientFactory;
+        _testService = testService;
     }
 
-    [HttpPost("generate-ai-test")]
-    public async Task<IActionResult> GenerateAiTest([FromBody] CreateTestDTO dto)
+    [HttpPost]
+    public async Task<IActionResult> CreateTest([FromBody] CreateTestDTO dto)
     {
-        var httpClient = _httpClientFactory.CreateClient();
-
-        var response = await httpClient.PostAsJsonAsync("http://localhost:8000/ai/generate_test", dto);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = await response.Content.ReadAsStringAsync();
-            return StatusCode((int)response.StatusCode, error);
-        }
-
-        var questions = await response.Content.ReadFromJsonAsync<List<CreateTestDTO>>();
-
-        return Ok(questions);
+        var teacherUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+        var test = await _testService.CreateTestAsync(dto, teacherUserId);
+        return Ok(test);
     }
+
+    // [HttpPost("generate-questions")]
+    // public async Task<IActionResult> GenerateQuestions([FromBody] GenerateQuestionDTO dto)
+    // {
+    //     var questions = await _testService.GenerateQuestionsFromMaterials(dto.MaterialIds, 1);
+    //     return Ok(questions);
+    // }
+
+    // [HttpPost("generate-answer")]
+    // public async Task<IActionResult> GenerateAnswer([FromBody] GenerateAnswerDTO dto)
+    // {
+    //     var answer = await _testService.GenerateAnswerForQuestion(dto);
+    //     return Ok(answer);
+    // }
 }

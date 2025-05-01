@@ -1,8 +1,9 @@
 @using Shared.DTOs.Tests
+@using System.Text.Json;
 @inject ISnackbar Snackbar
 @inject HttpClient Http
 
-
+@inject ITestService testService
 
 <MudText Typo="Typo.h6">Questions</MudText>
 
@@ -54,7 +55,9 @@
 
                 <MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Center" Class="mt-4">
                     <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.AutoFixHigh"
-                        OnClick="@(async () => await AutoFillQuestion(question))" Color="Color.Secondary">
+                        OnClick="@(async () => await AutoFillQuestion(question))" Color="Color.Secondary"
+                        Disabled="@(_isAutoFilling.ContainsKey(question) && _isAutoFilling[question])"
+                        Loading="@(_isAutoFilling.ContainsKey(question) && _isAutoFilling[question])">
                         Auto-Fill Choices
                     </MudButton>
 
@@ -91,12 +94,20 @@
     Add New Question
 </MudButton>
 
+<MudButton Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.AutoFixHigh"
+    OnClick="GenerateNewQuestion" Class="mt-4" Disabled="_isGeneratingQuestion" Loading="_isGeneratingQuestion">
+    Generate New Question
+</MudButton>
+
 
 
 @code {
     [Parameter] public CreateTestDTO Model { get; set; } = new();
 
     private Dictionary<CreateTestQuestionDTO, bool> _expandedQuestions = new();
+
+    private bool _isGeneratingQuestion = false;
+    private Dictionary<CreateTestQuestionDTO, bool> _isAutoFilling = new();
 
     private void AddNewQuestion()
     {
@@ -106,6 +117,43 @@
             Choices = new List<string> { "", "" },
             CorrectAnswer = ""
         });
+    }
+
+    private async Task GenerateNewQuestion()
+    {
+        _isGeneratingQuestion = true;
+        try
+        {
+            var questionText = await testService.GenerateQuestionAsync(new GenerateQuestionDTO
+            {
+                MaterialIds = Model.SelectedMaterialIds
+            });
+
+            if (!string.IsNullOrWhiteSpace(questionText))
+            {
+                var newQuestion = new CreateTestQuestionDTO
+                {
+                    Question = questionText,
+                    Choices = new List<string> { "", "" },
+                    CorrectAnswer = ""
+                };
+                Model.Questions.Add(newQuestion);
+                _expandedQuestions[newQuestion] = true;
+                Snackbar.Add("Generated question added!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Failed to generate question.", Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error generating question: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isGeneratingQuestion = false;
+        }
     }
 
     private void AddChoice(CreateTestQuestionDTO question)
@@ -140,6 +188,7 @@
             return;
         }
 
+        _isAutoFilling[question] = true;
         try
         {
             var response = await Http.PostAsJsonAsync("ai/generate-choices", new { question = question.Question });
@@ -157,6 +206,10 @@
         catch (Exception ex)
         {
             Snackbar.Add($"Failed to auto-fill: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isAutoFilling[question] = false;
         }
     }
 

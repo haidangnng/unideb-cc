@@ -80,10 +80,16 @@ builder.Services.AddHttpClient("ApiClient", client =>
     UseDefaultCredentials = false
 });
 
+builder.Services.AddHttpClient("ApiLLM", client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5500/");
+});
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICourseClientService, CourseClientService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
+builder.Services.AddScoped<ITestService, TestService>();
 
 // CONTEXT
 builder.Services.AddScoped<UserContextService>();

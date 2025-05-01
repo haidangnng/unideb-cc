@@ -10,8 +10,6 @@ public class CreateTestDTO
     public int? TimeLimitMinutes { get; set; }
 
     public int NumberOfQuestions { get; set; } = 10;
-    public bool AllowMultipleChoice { get; set; } = false;
-    public bool AllowOpenEndedQuestions { get; set; } = true;
 
     public List<CreateTestQuestionDTO> Questions { get; set; } = new();
 }
