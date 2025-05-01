@@ -6,7 +6,6 @@
         <MudListItem>Shuffle Questions: @(Model.ShuffleQuestions ? "Yes" : "No")</MudListItem>
         <MudListItem>Allow Multiple Attempts: @(Model.AllowMultipleAttempts ? "Yes" : "No")</MudListItem>
         <MudListItem>Time Limit: @(Model.TimeLimitMinutes?.ToString() ?? "No limit")</MudListItem>
-        @* <MudListItem>Password: @(string.IsNullOrWhiteSpace(Model.Password) ? "None" : "******")</MudListItem> *@
         <MudListItem>Number of Questions: @Model.NumberOfQuestions</MudListItem>
     </MudList>
 
@@ -41,12 +40,10 @@
         }
     </MudList>
 
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OnPublish">Submit Test</MudButton>
 </MudPaper>
 
 @code {
     [Parameter] public CreateTestDTO Model { get; set; } = new();
-    [Parameter] public EventCallback OnPublish { get; set; } = new();
     [Parameter] public List<Material> Materials { get; set; } = [];
 
     private bool _hasTimeLimit

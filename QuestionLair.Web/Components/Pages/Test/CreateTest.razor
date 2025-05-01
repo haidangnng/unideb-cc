@@ -25,8 +25,8 @@
                 <TestQuestionForm Model="@testModel" />
             </MudStep>
 
-            <MudStep Title="Review">
-                <TestReviewForm Model="testModel" OnPublish="SubmitTest" />
+            <MudStep Title="Review" OnClick="SubmitTestAsync">
+                <TestReviewForm Model="testModel" />
             </MudStep>
 
         </MudStepper>
@@ -42,10 +42,12 @@
 
     public List<Material> Materials { get; set; }
 
-    private async Task SubmitTest()
+    private async Task SubmitTestAsync()
     {
         await form.Validate();
+
         Console.WriteLine(JsonSerializer.Serialize(testModel, new JsonSerializerOptions { WriteIndented = true }));
+
         if (!form.IsValid)
         {
             Snackbar.Add("Please fix errors before submitting.", Severity.Error);
