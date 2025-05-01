@@ -1,6 +1,6 @@
 @page "/courses/{Id}/test/create"
 @using Shared.DTOs.Tests
-
+@using System.Text.Json;
 @inject IMaterialService MaterialService
 @inject ISnackbar Snackbar
 
@@ -18,7 +18,7 @@
             </MudStep>
 
             <MudStep Title="Settings">
-                <TestSettingForm Model="@testModel" />
+                <TestSettingForm Model="@testModel" Materials="Materials" />
             </MudStep>
 
             <MudStep Title="Add Questions">
@@ -26,7 +26,7 @@
             </MudStep>
 
             <MudStep Title="Review">
-                @* <TestStepReview Model="testModel" OnPublish="SubmitTest" /> *@
+                <TestReviewForm Model="testModel" OnPublish="SubmitTest" />
             </MudStep>
 
         </MudStepper>
@@ -40,9 +40,12 @@
     private CreateTestDTO testModel = new();
     private CreateTestFluentValidator testRequestValidator = new();
 
+    public List<Material> Materials { get; set; }
+
     private async Task SubmitTest()
     {
         await form.Validate();
+        Console.WriteLine(JsonSerializer.Serialize(testModel, new JsonSerializerOptions { WriteIndented = true }));
         if (!form.IsValid)
         {
             Snackbar.Add("Please fix errors before submitting.", Severity.Error);
@@ -51,5 +54,23 @@
 
         // Do the submit
         Snackbar.Add("Test submitted successfully!", Severity.Success);
+    }
+
+    private async Task GetMaterials()
+    {
+        try
+        {
+            Materials = await MaterialService.GetMaterialsByCourseId(Int32.Parse(Id));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load courses: {ex.Message}", Severity.Error);
+            Materials = new List<Material>();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetMaterials();
     }
 }
