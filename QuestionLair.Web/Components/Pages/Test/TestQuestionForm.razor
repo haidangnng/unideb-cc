@@ -55,7 +55,7 @@
 
                 <MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Center" Class="mt-4">
                     <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.AutoFixHigh"
-                        OnClick="@(async () => await AutoFillQuestion(question))" Color="Color.Secondary"
+                        OnClick="@(async () => await AutoFillChoice(question))" Color="Color.Secondary"
                         Disabled="@(_isAutoFilling.ContainsKey(question) && _isAutoFilling[question])"
                         Loading="@(_isAutoFilling.ContainsKey(question) && _isAutoFilling[question])">
                         Auto-Fill Choices
@@ -119,31 +119,102 @@
         });
     }
 
+    private async Task AutoFillChoice(CreateTestQuestionDTO question)
+    {
+        _isAutoFilling[question] = true;
+
+        try
+        {
+            if (string.IsNullOrWhiteSpace(question.Question))
+            {
+                Snackbar.Add("Please enter a question before generating answer.", Severity.Warning);
+                return;
+            }
+
+
+            var response = await testService.GenerateAnswerAsync(new GenerateAnswerDTO
+            {
+                Question = question.Question,
+                MaterialIds = Model.SelectedMaterialIds,
+            });
+
+            Console.WriteLine("========");
+            Console.WriteLine(JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true }));
+
+            var resString = JsonSerializer.Deserialize<JsonElement>(response).GetString();
+
+
+            if (!string.IsNullOrEmpty(resString))
+            {
+                var parsed = JsonSerializer.Deserialize<CreateTestQuestionDTO>(resString, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                if (parsed != null)
+                {
+                    question.Choices = parsed.Choices ?? new List<string>();
+                    question.CorrectAnswer = parsed.CorrectAnswer;
+
+                    Snackbar.Add("Choices and correct answer generated successfully!", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("No result content returned from LLM.", Severity.Warning);
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error generating answer: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isAutoFilling[question] = false;
+            StateHasChanged();
+        }
+    }
+
     private async Task GenerateNewQuestion()
     {
         _isGeneratingQuestion = true;
         try
         {
-            var questionText = await testService.GenerateQuestionAsync(new GenerateQuestionDTO
+            var result = await testService.GenerateQuestionAsync(new GenerateQuestionDTO
             {
                 MaterialIds = Model.SelectedMaterialIds
             });
 
-            if (!string.IsNullOrWhiteSpace(questionText))
+            // Deserialize nested JSON string from LLM response
+            var jsonElement = JsonSerializer.Deserialize<JsonElement>(result);
+            var jsonString = jsonElement.GetProperty("result").GetString();
+
+            if (!string.IsNullOrEmpty(jsonString))
             {
-                var newQuestion = new CreateTestQuestionDTO
+                var parsed = JsonSerializer.Deserialize<List<CreateTestQuestionDTO>>(jsonString, new JsonSerializerOptions
                 {
-                    Question = questionText,
-                    Choices = new List<string> { "", "" },
-                    CorrectAnswer = ""
-                };
-                Model.Questions.Add(newQuestion);
-                _expandedQuestions[newQuestion] = true;
-                Snackbar.Add("Generated question added!", Severity.Success);
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (parsed != null && parsed.Any())
+                {
+                    foreach (var question in parsed)
+                    {
+
+                        Model.Questions.Add(question);
+                        _expandedQuestions[question] = true;
+                    }
+
+                    Snackbar.Add($"Generated {parsed.Count} question(s) added!", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Failed to parse generated questions.", Severity.Warning);
+                }
             }
             else
             {
-                Snackbar.Add("Failed to generate question.", Severity.Warning);
+                Snackbar.Add("No result content returned from LLM.", Severity.Warning);
             }
         }
         catch (Exception ex)
@@ -180,42 +251,4 @@
             _expandedQuestions[question] = !_expandedQuestions[question];
     }
 
-    private async Task AutoFillQuestion(CreateTestQuestionDTO question)
-    {
-        if (string.IsNullOrWhiteSpace(question.Question))
-        {
-            Snackbar.Add("Please enter the question text first.", Severity.Warning);
-            return;
-        }
-
-        _isAutoFilling[question] = true;
-        try
-        {
-            var response = await Http.PostAsJsonAsync("ai/generate-choices", new { question = question.Question });
-            response.EnsureSuccessStatusCode();
-
-            var result = await response.Content.ReadFromJsonAsync<AutoFillResponse>();
-
-            if (result != null)
-            {
-                question.Choices = result.Choices;
-                question.CorrectAnswer = result.CorrectAnswer;
-                Snackbar.Add("Choices filled using AI!", Severity.Success);
-            }
-        }
-        catch (Exception ex)
-        {
-            Snackbar.Add($"Failed to auto-fill: {ex.Message}", Severity.Error);
-        }
-        finally
-        {
-            _isAutoFilling[question] = false;
-        }
-    }
-
-    public class AutoFillResponse
-    {
-        public List<string> Choices { get; set; } = new();
-        public string CorrectAnswer { get; set; } = "";
-    }
 }
