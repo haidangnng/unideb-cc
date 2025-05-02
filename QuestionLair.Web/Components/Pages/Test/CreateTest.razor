@@ -12,29 +12,51 @@
 <MudForm Style="width: 100%" Model="@testModel" @ref="form" Validation="@(testRequestValidator.ValidateValue)"
     ValidationDelay="0">
     <MudPaper Style="width: 100%; margin: auto; height: 100%" Class="my-4">
-        <MudStepper @bind-ActiveStep="_activeStep" Linear="true" DisableNavigation="true">
-            <MudStep Title="Test Details">
-                <TestDetailForm Model="@testModel" />
-            </MudStep>
+        <MudStepper @bind-ActiveIndex="_activeStep" Linear="true" DisableNavigation="true">
+            <ChildContent>
+                <MudStep Title="Test Details">
+                    <TestDetailForm Model="@testModel" />
+                </MudStep>
 
-            <MudStep Title="Settings">
-                <TestSettingForm Model="@testModel" Materials="Materials" />
-            </MudStep>
+                <MudStep Title="Settings">
+                    <TestSettingForm Model="@testModel" Materials="Materials" />
+                </MudStep>
 
-            <MudStep Title="Add Questions">
-                <TestQuestionForm Model="@testModel" />
-            </MudStep>
+                <MudStep Title="Add Questions">
+                    <TestQuestionForm Model="@testModel" />
+                </MudStep>
 
-            <MudStep Title="Review" OnClick="SubmitTestAsync">
-                <TestReviewForm Model="testModel" />
-            </MudStep>
+                <MudStep Title="Review">
+                    <TestReviewForm Model="testModel" />
+                </MudStep>
+            </ChildContent>
 
+            <ActionContent Context="stepper">
+                @if (!_completed)
+                {
+                    <MudButton OnClick="@(() => stepper.PreviousStepAsync())" Color="Color.Primary"
+                        Disabled="@(_activeStep <= 0)">Previous</MudButton>
+                    <MudSpacer />
+
+                    if (_activeStep != 3)
+                    {
+                        <MudButton OnClick="@(() => stepper.NextStepAsync())" Color="Color.Primary">
+                            Next</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" OnClick="SubmitTestAsync">
+                            Complete</MudButton>
+                    }
+                }
+            </ActionContent>
         </MudStepper>
     </MudPaper>
 </MudForm>
 
 @code {
     [Parameter] public string Id { get; set; }
+    private bool _completed;
     private int _activeStep = 0;
     private MudForm form;
     private CreateTestDTO testModel = new();
@@ -54,7 +76,6 @@
             return;
         }
 
-        // Do the submit
         Snackbar.Add("Test submitted successfully!", Severity.Success);
     }
 

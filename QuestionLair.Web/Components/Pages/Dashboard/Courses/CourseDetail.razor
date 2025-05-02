@@ -29,7 +29,7 @@
 
     public List<User> AvailableStudents { get; private set; }
     public List<Material> Materials { get; set; }
-    public List<Material> Tests { get; set; }
+    public List<Test> Tests { get; set; }
     public List<User> CourseStudents { get; set; }
 
     private async Task GetMaterials()
@@ -48,12 +48,14 @@
     {
         try
         {
-            Tests = await MaterialService.GetMaterialsByCourseId(Int32.Parse(Id));
+            @* Tests = await MaterialService.GetMaterialsByCourseId(Int32.Parse(Id)); *@
+
+            Tests = new List<Test>();
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Failed to load courses: {ex.Message}", Severity.Error);
-            Tests = new List<Material>();
+            Tests = new List<Test>();
         }
     }
 

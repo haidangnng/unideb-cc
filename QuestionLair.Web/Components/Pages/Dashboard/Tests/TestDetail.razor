@@ -1,0 +1,31 @@
+@page "/test/{testId}"
+
+@using System.Text.Json;
+
+@inject ITestService TestService
+@inject ISnackbar Snackbar
+
+@code {
+    [Parameter] public string testId { get; set; } = String.Empty;
+
+    public Test? CurrentTestDetail { get; set; }
+
+    private async Task GetTest()
+    {
+        try
+        {
+            @* CurrentTestDetail = await TestService.GetTestById(Int32.Parse(testId)); *@
+
+            @* Console.WriteLine(JsonSerializer.Serialize(CurrentTestDetail, new JsonSerializerOptions { WriteIndented = true })); *@
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Failed to load test: {ex.Message}", Severity.Error);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetTest();
+    }
+}
