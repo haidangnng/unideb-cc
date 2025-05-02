@@ -1,22 +1,89 @@
 @page "/test/{testId}"
 
-@using System.Text.Json;
+@using System.Text.Json
+@using Shared.DTOs.Tests
+@using Shared.Models.Courses
 
 @inject ITestService TestService
 @inject ISnackbar Snackbar
 
+<PageTitle>Test Detail</PageTitle>
+
+@if (CurrentTestDetail == null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else
+{
+    <MudPaper Class="pa-4">
+        <MudText Typo="Typo.h5">@CurrentTestDetail.Title</MudText>
+        <MudText Typo="Typo.subtitle2">@CurrentTestDetail.Description</MudText>
+
+        <MudDivider Class="my-2" />
+
+        <MudText Typo="Typo.body1"><b>Time Limit:</b> @(CurrentTestDetail.TimeLimitMinutes.HasValue ?
+                    $"{CurrentTestDetail.TimeLimitMinutes} minutes" : "None")</MudText>
+    <MudText Typo="Typo.body1"><b>Shuffle Questions:</b> @(CurrentTestDetail.ShuffleQuestions ? "Yes" : "No")</MudText>
+    <MudText Typo="Typo.body1"><b>Allow Multiple Attempts:</b> @(CurrentTestDetail.AllowMultipleAttempts ? "Yes" : "No")
+    </MudText>
+
+        <MudDivider Class="my-3" />
+
+        <MudText Typo="Typo.h6">Materials</MudText>
+    @if (CurrentTestDetail.Materials.Count == 0)
+        {
+            <MudText>No materials linked.</MudText>
+        }
+        else
+        {
+            <MudList T="string" Dense="true">
+                @foreach (var material in CurrentTestDetail.Materials)
+                {
+                    <MudListItem>
+                        <MudLink Href="@material.Url" Target="_blank">@material.FileName</MudLink>
+                    </MudListItem>
+                }
+            </MudList>
+        }
+
+        <MudDivider Class="my-3" />
+
+        <MudText Typo="Typo.h6">Questions</MudText>
+        @foreach (var q in CurrentTestDetail.Questions)
+        {
+            <MudPaper Class="pa-2 my-2">
+                <MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Center">
+                    <MudText Typo="Typo.body1" style="font-weight: 600">Question @(CurrentTestDetail.Questions.IndexOf(q) + 1):
+                    </MudText>
+                    <MudText Typo="Typo.subtitle1">@q.QuestionText</MudText>
+                </MudStack>
+                <MudList T="string" Dense="true">
+                    @foreach (var choice in q.Choices)
+                    {
+                        <MudListItem>
+                            <MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Center">
+                                <MudText>@(q.Choices.IndexOf(choice) + 1).</MudText>
+                                <MudText>@choice</MudText>
+                            </MudStack>
+                        </MudListItem>
+                    }
+                </MudList>
+                <MudText Color="Color.Success"><b>Correct:</b> @q.CorrectAnswer</MudText>
+            </MudPaper>
+        }
+    </MudPaper>
+}
 @code {
     [Parameter] public string testId { get; set; } = String.Empty;
 
-    public Test? CurrentTestDetail { get; set; }
+    public TestDetailDTO? CurrentTestDetail { get; set; }
 
     private async Task GetTest()
     {
         try
         {
-            @* CurrentTestDetail = await TestService.GetTestById(Int32.Parse(testId)); *@
-
-            @* Console.WriteLine(JsonSerializer.Serialize(CurrentTestDetail, new JsonSerializerOptions { WriteIndented = true })); *@
+            CurrentTestDetail = await TestService.GetTestByIdAsync(Int32.Parse(testId));
+            Console.WriteLine(JsonSerializer.Serialize(CurrentTestDetail, new JsonSerializerOptions { WriteIndented = true }));
         }
         catch (Exception ex)
         {
