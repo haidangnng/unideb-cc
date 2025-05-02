@@ -35,4 +35,22 @@ public class TestService : ITestService
 
         return await response.Content.ReadAsStringAsync();
     }
+
+    public async Task<List<TestDetailDTO>> GetTestByCourseId(int courseId)
+    {
+        var response = await _http.GetAsync($"api/tests/course/{courseId}");
+        response.EnsureSuccessStatusCode();
+
+
+        var tests = await response.Content.ReadFromJsonAsync<List<TestDetailDTO>>();
+        return tests ?? new List<TestDetailDTO>();
+    }
+
+    public async Task<TestDetailDTO?> GetTestByIdAsync(int testId)
+    {
+        var response = await _http.GetAsync($"api/tests/{testId}");
+        if (!response.IsSuccessStatusCode) return null;
+
+        return await response.Content.ReadFromJsonAsync<TestDetailDTO>();
+    }
 }

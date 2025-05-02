@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuestionLair.API.Data;
 using QuestionLair.API.Interfaces;
 using Shared.DTOs.Tests;
 using System.Net.Http.Json;
@@ -9,13 +10,13 @@ using System.Net.Http.Json;
 [Authorize(Roles = "Teacher")]
 public class TestsController : ControllerBase
 {
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly AppDbContext _context;
     private readonly ITestService _testService;
 
-    public TestsController(IHttpClientFactory httpClientFactory
-        , ITestService testService)
+    public TestsController(AppDbContext context, ITestService testService)
     {
-        _httpClientFactory = httpClientFactory;
+
+        _context = context;
         _testService = testService;
     }
 
@@ -27,17 +28,29 @@ public class TestsController : ControllerBase
         return Ok(test);
     }
 
-    // [HttpPost("generate-questions")]
-    // public async Task<IActionResult> GenerateQuestions([FromBody] GenerateQuestionDTO dto)
-    // {
-    //     var questions = await _testService.GenerateQuestionsFromMaterials(dto.MaterialIds, 1);
-    //     return Ok(questions);
-    // }
+    [HttpGet("{id}")]
+    public async Task<ActionResult<TestDetailDTO>> GetTestById(int id)
+    {
+        var test = await _testService.GetTestByIdAsync(id);
+        if (test == null)
+            return NotFound();
 
-    // [HttpPost("generate-answer")]
-    // public async Task<IActionResult> GenerateAnswer([FromBody] GenerateAnswerDTO dto)
-    // {
-    //     var answer = await _testService.GenerateAnswerForQuestion(dto);
-    //     return Ok(answer);
-    // }
+        return Ok(test);
+    }
+
+    [HttpGet("course/{courseId}")]
+    [Authorize]
+    public async Task<IActionResult> GetTestsByCourseId(int courseId)
+    {
+        try
+        {
+            var tests = await _testService.GetTestByCourseId(courseId);
+            return Ok(tests); // safe to return DTOs
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERRRRRRR ====> {ex.Message}");
+            return BadRequest(new { error = ex.Message });
+        }
+    }
 }

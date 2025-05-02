@@ -1,3 +1,5 @@
+@using System.Text.Json;
+
 <Block Title="Tests" IsEmpty="!(Tests != null && Tests.Any())" EmptyDesc="No tests available">
     <ActionButton>
         <MudButton StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" Variant="Variant.Outlined"
@@ -24,5 +26,11 @@
 
 @code {
     [Parameter] public string Id { get; set; } = String.Empty;
-    [Parameter] public List<Test> Tests { get; set; }
+    [Parameter] public List<TestDetailDTO> Tests { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine(JsonSerializer.Serialize(Tests, new JsonSerializerOptions { WriteIndented = true }));
+    }
 }

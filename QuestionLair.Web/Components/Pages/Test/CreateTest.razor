@@ -3,6 +3,7 @@
 @using System.Text.Json;
 @inject IMaterialService MaterialService
 @inject ISnackbar Snackbar
+@inject ITestService TestService
 
 <PageTitle>Create Test</PageTitle>
 
@@ -75,6 +76,11 @@
             Snackbar.Add("Please fix errors before submitting.", Severity.Error);
             return;
         }
+
+        testModel.CourseId = Int32.Parse(Id);
+        var createdTest = await TestService.CreateTestAsync(testModel);
+
+        @* Console.WriteLine(JsonSerializer.Serialize(createdTest, new JsonSerializerOptions { WriteIndented = true })); *@
 
         Snackbar.Add("Test submitted successfully!", Severity.Success);
     }

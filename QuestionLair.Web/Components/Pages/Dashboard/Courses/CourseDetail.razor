@@ -2,6 +2,7 @@
 
 @inject IMaterialService MaterialService
 @inject IUserService UserService
+@inject ITestService TestService
 @inject ICourseClientService CourseClientService
 @inject ISnackbar Snackbar
 
@@ -29,7 +30,7 @@
 
     public List<User> AvailableStudents { get; private set; }
     public List<Material> Materials { get; set; }
-    public List<Test> Tests { get; set; }
+    public List<TestDetailDTO> Tests { get; set; }
     public List<User> CourseStudents { get; set; }
 
     private async Task GetMaterials()
@@ -48,14 +49,12 @@
     {
         try
         {
-            @* Tests = await MaterialService.GetMaterialsByCourseId(Int32.Parse(Id)); *@
-
-            Tests = new List<Test>();
+            Tests = await TestService.GetTestByCourseId(Int32.Parse(Id));
         }
         catch (Exception ex)
         {
             Snackbar.Add($"Failed to load courses: {ex.Message}", Severity.Error);
-            Tests = new List<Test>();
+            Tests = new List<TestDetailDTO>();
         }
     }
 
