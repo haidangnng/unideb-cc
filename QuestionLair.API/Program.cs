@@ -80,6 +80,7 @@ builder.Services.AddHttpClient("ApiClient", client =>
 // REGISTER SERVICE
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
+builder.Services.AddScoped<ITestService, TestService>();
 builder.Services.AddScoped<S3Service>();
 builder.Services.AddScoped<LLMService>();
 

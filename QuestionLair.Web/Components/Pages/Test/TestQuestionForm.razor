@@ -1,0 +1,263 @@
+@using Shared.DTOs.Tests
+@using System.Text.Json;
+@inject ISnackbar Snackbar
+@inject HttpClient Http
+
+@inject ITestService testService
+
+@if (_isGeneratingQuestion && Model.Questions.Count == 0)
+{
+    <MudPaper Class="d-flex align-center justify-center" Style="min-height: 300px;">
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+        <MudText Class="ml-4" Typo="Typo.h6">Generating questions, please wait...</MudText>
+    </MudPaper>
+    return;
+}
+
+<MudText Typo="Typo.h6">Questions</MudText>
+
+@foreach (var question in Model.Questions)
+{
+    <MudCard Class="my-4">
+        <MudCardContent>
+            <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                <MudText Typo="Typo.subtitle1">Question @(Model.Questions.IndexOf(question) + 1)</MudText>
+
+                @if (!(_expandedQuestions.ContainsKey(question) && _expandedQuestions[question]) &&
+                            !string.IsNullOrEmpty(question.Question))
+                {
+                    <MudStack class="flex-1" Row="true" AlignItems="AlignItems.Center" Justify="Justify.FlexStart">
+                        <MudText Class="flex-1">@question.Question</MudText>
+                    </MudStack>
+                }
+
+                <MudIconButton
+                    Icon="@(!(_expandedQuestions.ContainsKey(question) && _expandedQuestions[question]) ? Icons.Material.Filled.KeyboardArrowDown : Icons.Material.Filled.KeyboardArrowUp)"
+                    OnClick="@(() => ToggleExpand(question))" />
+            </MudStack>
+
+            @if (_expandedQuestions.ContainsKey(question) && _expandedQuestions[question])
+            {
+                <MudTextField T=" string" Label="Question" @bind-Value="question.Question" Variant="Variant.Filled"
+                    Immediate="true" />
+
+                <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">Choices</MudText>
+
+                <MudStack>
+                    @foreach (var choiceWithIndex in question.Choices.Select((choice, index) => new
+                    {
+                        Choice = choice,
+                        Index =
+                                index
+                    }))
+                    {
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudTextField T="string" @bind-Value="question.Choices[choiceWithIndex.Index]" Variant="Variant.Filled"
+                                Immediate="true" Class="flex-grow-1" />
+                            <MudButton Variant="Variant.Text" Color="Color.Error"
+                                OnClick="@(() => RemoveChoice(question, choiceWithIndex.Index))">
+                                <MudIcon Icon="@Icons.Material.Filled.Delete" />
+                            </MudButton>
+                        </MudStack>
+                    }
+                </MudStack>
+
+                <MudStack Row="true" Justify="Justify.FlexStart" AlignItems="AlignItems.Center" Class="mt-4">
+                    <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.AutoFixHigh"
+                        OnClick="@(async () => await AutoFillChoice(question))" Color="Color.Secondary"
+                        Disabled="@(_isAutoFilling.ContainsKey(question) && _isAutoFilling[question])"
+                        Loading="@(_isAutoFilling.ContainsKey(question) && _isAutoFilling[question])">
+                        Auto-Fill Choices
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                        OnClick="@(() => AddChoice(question))">
+                        Add Choice
+                    </MudButton>
+                </MudStack>
+
+                <MudText Typo="Typo.subtitle2" Class="mt-4">Select Correct Answer</MudText>
+
+                <MudSelect T="string" @bind-Value="question.CorrectAnswer" Variant="Variant.Filled" Dense="true">
+                    @foreach (var choice in question.Choices)
+                    {
+                        <MudSelectItem Value="@choice">@choice</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+        </MudCardContent>
+        @if (_expandedQuestions.ContainsKey(question) && _expandedQuestions[question])
+        {
+            <MudCardActions>
+                <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="@(() => RemoveQuestion(question))">
+                    <MudIcon Icon="@Icons.Material.Filled.Delete" /> Remove Question
+                </MudButton>
+            </MudCardActions>
+        }
+    </MudCard>
+    <MudDivider />
+}
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+    OnClick="AddNewQuestion" Class="mt-4">
+    Add New Question
+</MudButton>
+
+<MudButton Variant="Variant.Filled" Color="Color.Secondary" StartIcon="@Icons.Material.Filled.AutoFixHigh"
+    OnClick="GenerateNewQuestion" Class="mt-4" Disabled="_isGeneratingQuestion" Loading="_isGeneratingQuestion">
+    Generate New Question
+</MudButton>
+
+
+
+@code {
+    [Parameter] public CreateTestDTO Model { get; set; } = new();
+
+    private Dictionary<CreateTestQuestionDTO, bool> _expandedQuestions = new();
+
+    private bool _isGeneratingQuestion = false;
+    private Dictionary<CreateTestQuestionDTO, bool> _isAutoFilling = new();
+
+    private void AddNewQuestion()
+    {
+        Model.Questions.Add(new CreateTestQuestionDTO
+        {
+            Question = "",
+            Choices = new List<string> { "", "" },
+            CorrectAnswer = ""
+        });
+    }
+
+    private async Task AutoFillChoice(CreateTestQuestionDTO question)
+    {
+        _isAutoFilling[question] = true;
+
+        try
+        {
+            if (string.IsNullOrWhiteSpace(question.Question))
+            {
+                Snackbar.Add("Please enter a question before generating answer.", Severity.Warning);
+                return;
+            }
+
+
+            var response = await testService.GenerateAnswerAsync(new GenerateAnswerDTO
+            {
+                Question = question.Question,
+                MaterialIds = Model.SelectedMaterialIds,
+            });
+
+            Console.WriteLine("========");
+            Console.WriteLine(JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true }));
+
+            var resString = JsonSerializer.Deserialize<JsonElement>(response).GetString();
+
+
+            if (!string.IsNullOrEmpty(resString))
+            {
+                var parsed = JsonSerializer.Deserialize<CreateTestQuestionDTO>(resString, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                if (parsed != null)
+                {
+                    question.Choices = parsed.Choices ?? new List<string>();
+                    question.CorrectAnswer = parsed.CorrectAnswer;
+
+                    Snackbar.Add("Choices and correct answer generated successfully!", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("No result content returned from LLM.", Severity.Warning);
+                }
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error generating answer: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isAutoFilling[question] = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task GenerateNewQuestion()
+    {
+        _isGeneratingQuestion = true;
+        try
+        {
+            var result = await testService.GenerateQuestionAsync(new GenerateQuestionDTO
+            {
+                MaterialIds = Model.SelectedMaterialIds
+            });
+
+            // Deserialize nested JSON string from LLM response
+            var jsonElement = JsonSerializer.Deserialize<JsonElement>(result);
+            var jsonString = jsonElement.GetProperty("result").GetString();
+
+            if (!string.IsNullOrEmpty(jsonString))
+            {
+                var parsed = JsonSerializer.Deserialize<List<CreateTestQuestionDTO>>(jsonString, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (parsed != null && parsed.Any())
+                {
+                    foreach (var question in parsed)
+                    {
+
+                        Model.Questions.Add(question);
+                        _expandedQuestions[question] = true;
+                    }
+
+                    Snackbar.Add($"Generated {parsed.Count} question(s) added!", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Failed to parse generated questions.", Severity.Warning);
+                }
+            }
+            else
+            {
+                Snackbar.Add("No result content returned from LLM.", Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error generating question: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isGeneratingQuestion = false;
+        }
+    }
+
+    private void AddChoice(CreateTestQuestionDTO question)
+    {
+        question.Choices.Add("");
+    }
+
+    private void RemoveChoice(CreateTestQuestionDTO question, int index)
+    {
+        if (index >= 0 && index < question.Choices.Count)
+            question.Choices.RemoveAt(index);
+    }
+
+    private void RemoveQuestion(CreateTestQuestionDTO question)
+    {
+        Model.Questions.Remove(question);
+    }
+
+    private void ToggleExpand(CreateTestQuestionDTO question)
+    {
+        if (!_expandedQuestions.ContainsKey(question))
+            _expandedQuestions[question] = true;
+        else
+            _expandedQuestions[question] = !_expandedQuestions[question];
+    }
+
+}

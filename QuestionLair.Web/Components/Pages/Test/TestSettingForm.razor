@@ -1,0 +1,57 @@
+@using Shared.DTOs.Tests;
+
+<MudStack Spacing="2">
+    <MudSwitch T="bool" @bind-Value="Model.ShuffleQuestions" Color="Color.Primary" Label="Shuffle Questions" />
+    <MudSwitch T="bool" @bind-Value="Model.AllowMultipleAttempts" Color="Color.Primary"
+        Label="Allow Multiple Attempts" />
+    <MudSwitch T="bool" @bind-Value="_hasTimeLimit" Color="Color.Primary" Label="Set Time Limit" />
+
+    @if (_hasTimeLimit)
+    {
+        <MudNumericField T="int?" Label="Time Limit (minutes)" @bind-Value="Model.TimeLimitMinutes" Immediate="true"
+            Variant="Variant.Filled" Min="1" Max="600" Required="true" />
+    }
+
+    @* <MudSelect T="int" Label="Select Materials" MultiSelection="true" Variant="Variant.Filled"
+        SelectedValues="Model.SelectedMaterialIds"
+        SelectedValuesChanged="@(values => Model.SelectedMaterialIds = values.ToList())"
+        ToStringFunc="id => Materials.FirstOrDefault(m => m.Id == id)?.FileName ?? id.ToString()">
+        >
+        @foreach (var material in Materials)
+        {
+            <MudSelectItem Value="@material.Id">@material.FileName</MudSelectItem>
+        }
+    </MudSelect> *@
+
+    <MudSelect T="int" Label="Select Materials" MultiSelection="true" Variant="Variant.Filled"
+        SelectedValues="Model.SelectedMaterialIds"
+        SelectedValuesChanged="@(values => Model.SelectedMaterialIds = values.ToList())"
+        ToStringFunc="@GetMaterialName">
+        @foreach (var material in Materials)
+        {
+            <MudSelectItem Value="@material.Id">@material.FileName</MudSelectItem>
+        }
+    </MudSelect>
+
+</MudStack>
+
+@code {
+    [Parameter] public CreateTestDTO Model { get; set; } = new();
+    [Parameter] public List<Material> Materials { get; set; } = [];
+
+    private bool _hasTimeLimit
+    {
+        get => Model.TimeLimitMinutes.HasValue;
+        set
+        {
+            if (value && !Model.TimeLimitMinutes.HasValue)
+                Model.TimeLimitMinutes = 30; // default 30 minutes
+            else if (!value)
+                Model.TimeLimitMinutes = null;
+        }
+    }
+    private string GetMaterialName(int id)
+    {
+        return Materials?.FirstOrDefault(m => m.Id == id)?.FileName ?? id.ToString();
+    }
+}

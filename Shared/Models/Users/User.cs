@@ -14,7 +14,7 @@ public class User
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public TeacherProfile? TeacherProfile { get; set; }
-    public AdminProfile? AdminProfile { get; set; }
+    // public AdminProfile? AdminProfile { get; set; }
     public StudentProfile? StudentProfile { get; set; }
 
     public string? RefreshToken { get; set; }

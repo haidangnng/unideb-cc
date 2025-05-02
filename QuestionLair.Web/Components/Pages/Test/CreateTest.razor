@@ -1,45 +1,89 @@
 @page "/courses/{Id}/test/create"
-
+@using Shared.DTOs.Tests
+@using System.Text.Json;
 @inject IMaterialService MaterialService
 @inject ISnackbar Snackbar
+@inject ITestService TestService
 
 <PageTitle>Create Test</PageTitle>
 
 <MudText Typo="Typo.h4">Create Test</MudText>
 
-<MudPaper Style="margin: auto; height: 100%" Class="my-4">
-    <MudStepper Linear="true" @bind-ActiveStep="_activeStep">
 
-        <MudStep Title="Test Details">
-            @* <TestStepDetails Model="_testModel" OnNext="NextStep" /> *@
-        </MudStep>
+<MudForm Style="width: 100%" Model="@testModel" @ref="form" Validation="@(testRequestValidator.ValidateValue)"
+    ValidationDelay="0">
+    <MudPaper Style="width: 100%; margin: auto; height: 100%" Class="my-4">
+        <MudStepper @bind-ActiveIndex="_activeStep" Linear="true" DisableNavigation="true">
+            <ChildContent>
+                <MudStep Title="Test Details">
+                    <TestDetailForm Model="@testModel" />
+                </MudStep>
 
-        <MudStep Title="Settings">
-            @* <TestStepSettings Model="_testModel" OnNext="NextStep" /> *@
-        </MudStep>
+                <MudStep Title="Settings">
+                    <TestSettingForm Model="@testModel" Materials="Materials" />
+                </MudStep>
 
-        <MudStep Title="Add Questions">
-            @* <TestStepQuestions Model="_testModel" OnNext="NextStep" /> *@
-        </MudStep>
+                <MudStep Title="Add Questions">
+                    <TestQuestionForm Model="@testModel" />
+                </MudStep>
 
-        <MudStep Title="Review">
-            @* <TestStepReview Model="_testModel" OnPublish="SubmitTest" /> *@
-        </MudStep>
+                <MudStep Title="Review">
+                    <TestReviewForm Model="testModel" />
+                </MudStep>
+            </ChildContent>
 
-    </MudStepper>
-</MudPaper>
+            <ActionContent Context="stepper">
+                @if (!_completed)
+                {
+                    <MudButton OnClick="@(() => stepper.PreviousStepAsync())" Color="Color.Primary"
+                        Disabled="@(_activeStep <= 0)">Previous</MudButton>
+                    <MudSpacer />
 
+                    if (_activeStep != 3)
+                    {
+                        <MudButton OnClick="@(() => stepper.NextStepAsync())" Color="Color.Primary">
+                            Next</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Icon="@Icons.Material.Filled.ArrowForward" Color="Color.Primary" OnClick="SubmitTestAsync">
+                            Complete</MudButton>
+                    }
+                }
+            </ActionContent>
+        </MudStepper>
+    </MudPaper>
+</MudForm>
 
 @code {
-    [Parameter] public string Id { get; set; } = String.Empty;
-    public List<Material> Materials { get; set; }
+    [Parameter] public string Id { get; set; }
+    private bool _completed;
     private int _activeStep = 0;
+    private MudForm form;
+    private CreateTestDTO testModel = new();
+    private CreateTestFluentValidator testRequestValidator = new();
 
-    private async Task NextStep()
+    public List<Material> Materials { get; set; }
+
+    private async Task SubmitTestAsync()
     {
-        _activeStep++;
-    }
+        await form.Validate();
 
+        Console.WriteLine(JsonSerializer.Serialize(testModel, new JsonSerializerOptions { WriteIndented = true }));
+
+        if (!form.IsValid)
+        {
+            Snackbar.Add("Please fix errors before submitting.", Severity.Error);
+            return;
+        }
+
+        testModel.CourseId = Int32.Parse(Id);
+        var createdTest = await TestService.CreateTestAsync(testModel);
+
+        @* Console.WriteLine(JsonSerializer.Serialize(createdTest, new JsonSerializerOptions { WriteIndented = true })); *@
+
+        Snackbar.Add("Test submitted successfully!", Severity.Success);
+    }
 
     private async Task GetMaterials()
     {

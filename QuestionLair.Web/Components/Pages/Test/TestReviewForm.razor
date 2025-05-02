@@ -1,0 +1,64 @@
+<MudPaper Class="pa-4">
+    <MudText Typo="Typo.h6">Review Test Details</MudText>
+    <MudList T="string">
+        <MudListItem>Title: @Model.Title</MudListItem>
+        <MudListItem>Description: @Model.Description</MudListItem>
+        <MudListItem>Shuffle Questions: @(Model.ShuffleQuestions ? "Yes" : "No")</MudListItem>
+        <MudListItem>Allow Multiple Attempts: @(Model.AllowMultipleAttempts ? "Yes" : "No")</MudListItem>
+        <MudListItem>Time Limit: @(Model.TimeLimitMinutes?.ToString() ?? "No limit")</MudListItem>
+        <MudListItem>Number of Questions: @Model.NumberOfQuestions</MudListItem>
+    </MudList>
+
+    <MudDivider Class="my-2" />
+    <MudText Typo="Typo.h6">Selected Materials</MudText>
+    <MudList T="string">
+        @foreach (var matId in Model.SelectedMaterialIds)
+        {
+            var mat = Materials.FirstOrDefault(m => m.Id == matId);
+            <MudListItem>@(mat?.FileName ?? $"Material ID: {matId}")</MudListItem>
+        }
+    </MudList>
+
+    <MudDivider Class="my-2" />
+    <MudText Typo="Typo.h6">Questions</MudText>
+    <MudList T="string">
+        @foreach (var (q, index) in Model.Questions.Select((q, i) => (q, i)))
+        {
+            <MudListItem>
+                <b>Q@(index + 1):</b> @q.Question
+                @if (q.Choices.Any())
+                {
+                    <ul>
+                        @foreach (var choice in q.Choices)
+                        {
+                            <li>@choice</li>
+                        }
+                    </ul>
+                    <div>Correct: @string.Join(", ", q.CorrectAnswer)</div>
+                }
+            </MudListItem>
+        }
+    </MudList>
+
+</MudPaper>
+
+@code {
+    [Parameter] public CreateTestDTO Model { get; set; } = new();
+    [Parameter] public List<Material> Materials { get; set; } = [];
+
+    private bool _hasTimeLimit
+    {
+        get => Model.TimeLimitMinutes.HasValue;
+        set
+        {
+            if (value && !Model.TimeLimitMinutes.HasValue)
+                Model.TimeLimitMinutes = 30; // default 30 minutes
+            else if (!value)
+                Model.TimeLimitMinutes = null;
+        }
+    }
+    private string GetMaterialName(int id)
+    {
+        return Materials?.FirstOrDefault(m => m.Id == id)?.FileName ?? id.ToString();
+    }
+}

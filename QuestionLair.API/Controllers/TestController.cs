@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuestionLair.API.Data;
+using QuestionLair.API.Interfaces;
 using Shared.DTOs.Tests;
 using System.Net.Http.Json;
 
@@ -8,28 +10,47 @@ using System.Net.Http.Json;
 [Authorize(Roles = "Teacher")]
 public class TestsController : ControllerBase
 {
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly AppDbContext _context;
+    private readonly ITestService _testService;
 
-    public TestsController(IHttpClientFactory httpClientFactory)
+    public TestsController(AppDbContext context, ITestService testService)
     {
-        _httpClientFactory = httpClientFactory;
+
+        _context = context;
+        _testService = testService;
     }
 
-    [HttpPost("generate-ai-test")]
-    public async Task<IActionResult> GenerateAiTest([FromBody] CreateTestDTO dto)
+    [HttpPost]
+    public async Task<IActionResult> CreateTest([FromBody] CreateTestDTO dto)
     {
-        var httpClient = _httpClientFactory.CreateClient();
+        var teacherUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+        var test = await _testService.CreateTestAsync(dto, teacherUserId);
+        return Ok(test);
+    }
 
-        var response = await httpClient.PostAsJsonAsync("http://localhost:8000/ai/generate_test", dto);
+    [HttpGet("{id}")]
+    public async Task<ActionResult<TestDetailDTO>> GetTestById(int id)
+    {
+        var test = await _testService.GetTestByIdAsync(id);
+        if (test == null)
+            return NotFound();
 
-        if (!response.IsSuccessStatusCode)
+        return Ok(test);
+    }
+
+    [HttpGet("course/{courseId}")]
+    [Authorize]
+    public async Task<IActionResult> GetTestsByCourseId(int courseId)
+    {
+        try
         {
-            var error = await response.Content.ReadAsStringAsync();
-            return StatusCode((int)response.StatusCode, error);
+            var tests = await _testService.GetTestByCourseId(courseId);
+            return Ok(tests); // safe to return DTOs
         }
-
-        var questions = await response.Content.ReadFromJsonAsync<List<CreateTestDTO>>();
-
-        return Ok(questions);
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ERRRRRRR ====> {ex.Message}");
+            return BadRequest(new { error = ex.Message });
+        }
     }
 }
